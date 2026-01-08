@@ -1,0 +1,6 @@
+#Ignore python cache files and folders
+__pycache__
+*.py[cod]
+
+#Ignore Pychar files
+.idea

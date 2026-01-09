@@ -45,9 +45,9 @@ class MazeConfig:
     def line_processor(self, key: str, value: str) -> None:
         try:
             if key == "WIDTH":
-                self.width = int(value)
+                self.width: int = int(value)
             elif key == "HEIGHT":
-                self.height = int(value)
+                self.height: int = int(value)
             elif key == "ENTRY":
                 x, y = value.split(",")
                 self.entry: Coordinate = (int(x), int(y))
@@ -55,9 +55,9 @@ class MazeConfig:
                 x, y = value.split(",")
                 self.exit: Coordinate = (int(x), int(y))
             elif key == "PERFECT":
-                self.perfect = value == "True"
+                self.perfect: bool = value == "True"
             elif key == "OUTPUT_FILE":
-                self.output_file = value
+                self.output_file: str = value
             else:
                 raise ValueError(f"Unknown configuration key: {key}")
         except Exception as e:

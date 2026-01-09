@@ -1,18 +1,29 @@
+import sys
+
 class MazeConfig:
 
-    def __init__(self):
+    def __init__(self, config_file):
         try:
-            self.parse_file()
+            self.parse_file(config_file)
             self.check_config()
         except Exception as e:
             print(f"Config File Error: {e}")
+            sys.exit(1)
 
 
-    def parse_file(self) -> None:
-        with open("config.txt", "r") as file:
-            for line in file:
-                key, value = line.strip().split("=")
-                self.line_processor(key, value)
+    def parse_file(self, config_file) -> None:
+        try:
+            with open(config_file, "r") as file:
+                for line in file:
+                    if line.strip() and not line.startswith("#"):
+                        key, value = line.strip().split("=")
+                        self.line_processor(key, value)
+        except FileNotFoundError:
+            raise Exception(f"Configuration file '{config_file}' not found!")
+        except PermissionError:
+            raise Exception(f"Permission denied to read '{config_file}'!")
+        except Exception as e:
+            raise Exception(f"Error occurred reading configuration file: {e}")
 
 
     def check_config(self) -> None:

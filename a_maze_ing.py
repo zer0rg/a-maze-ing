@@ -8,8 +8,8 @@ from InteractiveMenu import InteractiveMenu
 
 class Maze:
     
-    def __init__(self):
-        self.config : MazeConfig = MazeConfig()
+    def __init__(self, config_file):
+        self.config : MazeConfig = MazeConfig(config_file)
         self.renderer: MazeRenderer = MazeRenderer()
         self.generator : MazeGenerator = MazeGenerator(self.config)
         self.menu : InteractiveMenu = InteractiveMenu()
@@ -22,4 +22,20 @@ class Maze:
 
 
 if __name__ == "__main__":
-    maze : Maze = Maze()
+    if len(sys.argv) != 2:
+        print("Error: Invalid number of arguments!")
+        print("Usage: python a_maze_ing.py <config_file.txt>")
+        sys.exit(1)
+    
+    config_file = sys.argv[1]
+    
+    if not config_file.endswith('.txt'):
+        print("Error: Configuration file must be a .txt file!")
+        print("Usage: python a_maze_ing.py <config_file.txt>")
+        sys.exit(1)
+    
+    try:
+        maze = Maze(config_file)
+    except Exception as e:
+        print(f"{e}")
+        sys.exit(1)

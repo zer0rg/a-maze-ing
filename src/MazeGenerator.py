@@ -13,12 +13,26 @@ class MazeGenerator:
         self.exit: Coordinate = config.exit
         self.output_file: str = config.output_file
         self.maze: MazeBoard = self._initialize_board()
+        # Set de datos para marcar las casillas ya visitadas
+        self.visited: set = set()
 
     def generate(self) -> MazeBoard:
-        pass
-#       Podemos generar un laberinto perfecto con backtracking recursivo,
-#       y si PERFECT=FALSE añadimos caminos extra de alguna manera???
+        self._init_backtracking(self.entry)
         return self.maze
+
+    def _init_backtracking(self, coord: Coordinate):
+        # La idea es desde un punto inicial buscar si uno de su adyacentes
+        # se ha visitado y si no ha visitado romper la pared que les separa
+        # y seguir para adelante asi hasta pasar por todas las casillas
+        x, y = coord
+
+        if x < 1 or y < 1 or x > self.width or y > self.height:
+            return
+
+        if coord in self.visited:
+            return
+
+        self.visited.add(coord)
 
     def save_to_file(self):
         with open(self.output_file, "w") as output_file:

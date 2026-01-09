@@ -12,6 +12,20 @@ class MazeConfig:
                 key, value = line.strip().split("=")
                 self.line_processor(key, value)
 
+    def check_config(self):
+        if not hasattr(self, 'width') or not self.width:
+            raise Exception("Value WIDTH is needed!")
+        if not hasattr(self, 'height') or not self.height:
+            raise Exception("Value HEIGHT is needed!")
+        if not hasattr(self, 'entry') or not isinstance(self.entry, dict):
+            raise Exception("Value ENTRY is needed and must be a valid coordinate pair!")
+        if not hasattr(self, 'exit') or not isinstance(self.exit, dict):
+            raise Exception("Value EXIT is needed and must be a valid coordinate pair!")
+        if not hasattr(self, 'perfect'):
+            raise Exception("Value PERFECT is needed!")
+        if not hasattr(self, 'output_file') or not self.output_file:
+            raise Exception("Value OUTPUT_FILE is needed!")
+
     def line_processor(self, key : str, value : str):
         try:
             if key == "WIDTH":

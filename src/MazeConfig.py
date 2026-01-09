@@ -7,11 +7,13 @@ class MazeConfig:
         except Exception as e:
             print(f"Config File Error: {e}")
 
+
     def parse_file(self) -> None:
         with open("config.txt", "r") as file:
             for line in file:
                 key, value = line.strip().split("=")
                 self.line_processor(key, value)
+
 
     def check_config(self) -> None:
         if not hasattr(self, 'width') or not self.width:
@@ -26,6 +28,7 @@ class MazeConfig:
             raise Exception("Value PERFECT is needed!")
         if not hasattr(self, 'output_file') or not self.output_file:
             raise Exception("Value OUTPUT_FILE is needed!")
+
 
     def line_processor(self, key : str, value : str) -> None:
         try:

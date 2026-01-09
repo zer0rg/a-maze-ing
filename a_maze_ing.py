@@ -7,6 +7,7 @@ from MazeGenerator import MazeGenerator
 from InteractiveMenu import InteractiveMenu
 
 class Maze:
+    
     def __init__(self):
         self.config : MazeConfig = MazeConfig()
         self.renderer: MazeRenderer = MazeRenderer()

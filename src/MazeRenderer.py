@@ -1,3 +1,9 @@
+from typing import List
+
 class MazeRenderer:
-    pass
-#   Terminal o MiniLibx?
+    def __init__(self, board : List[List[int]]):
+        self.board = board
+
+    def render(self):
+        pass
+#       Terminal o MiniLibx?

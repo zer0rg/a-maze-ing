@@ -12,8 +12,8 @@ class Maze:
         self.generator : MazeGenerator = MazeGenerator(self.config)
         try:
             self.board : List[List[int]] = self.generator.generate()
-            #self.renderer.render(self.board)
-            # Propagar cualquier tipo de Error en el generador!!
+            self.renderer.render(self.board)
+            # Propagar cualquier tipo de Error en el generador y renderer!!
         except Exception:
             print("There was an error generating the maze...")
 

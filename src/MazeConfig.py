@@ -27,7 +27,7 @@ class MazeConfig:
         if not hasattr(self, 'output_file') or not self.output_file:
             raise Exception("Value OUTPUT_FILE is needed!")
 
-    def line_processor(self, key : str, value : str):
+    def line_processor(self, key : str, value : str) -> None:
         try:
             if key == "WIDTH":
                 self.width = int(value)

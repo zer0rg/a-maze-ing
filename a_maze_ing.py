@@ -7,11 +7,16 @@ from MazeGenerator import MazeGenerator
 
 class Maze:
     def __init__(self):
-        self.board : List[List[int]] = []
         self.config : MazeConfig = MazeConfig()
         self.renderer: MazeRenderer = MazeRenderer()
         self.generator : MazeGenerator = MazeGenerator(self.config)
-        
+        try:
+            self.board : List[List[int]] = self.generator.generate()
+            #self.renderer.render(self.board)
+            # Propagar cualquier tipo de Error en el generador!!
+        except Exception:
+            print("There was an error generating the maze...")
+
 
 if __name__ == "__main__":
     maze : Maze = Maze()

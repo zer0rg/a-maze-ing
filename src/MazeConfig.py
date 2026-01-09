@@ -12,16 +12,24 @@ class MazeConfig:
                 key, value = line.strip().split("=")
                 self.line_processor(key, value)
 
-    def line_processor(self, key, value):
+    def line_processor(self, key : str, value : str):
         try:
             if key == "WIDTH":
                 self.width = int(value)
             elif key == "HEIGHT":
                 self.height = int(value)
             elif key == "ENTRY":
-                self.entry = float(value)
+                x, y = value.split(",")
+                self.entry : dict = {
+                    x,
+                    y
+                }
             elif key == "EXIT":
-                self.exit = float(value)
+                x, y = value.split(",")
+                self.exit : dict = {
+                    x,
+                    y
+                }
             elif key == "PERFECT":
                 self.perfect = value == "True"
             elif key == "OUTPUT_FILE":

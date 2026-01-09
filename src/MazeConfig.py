@@ -3,16 +3,17 @@ class MazeConfig:
     def __init__(self):
         try:
             self.parse_file()
+            self.check_config()
         except Exception as e:
             print(f"Config File Error: {e}")
 
-    def parse_file(self):
+    def parse_file(self) -> None:
         with open("config.txt", "r") as file:
             for line in file:
                 key, value = line.strip().split("=")
                 self.line_processor(key, value)
 
-    def check_config(self):
+    def check_config(self) -> None:
         if not hasattr(self, 'width') or not self.width:
             raise Exception("Value WIDTH is needed!")
         if not hasattr(self, 'height') or not self.height:
@@ -35,14 +36,14 @@ class MazeConfig:
             elif key == "ENTRY":
                 x, y = value.split(",")
                 self.entry : dict = {
-                    x,
-                    y
+                    x : int(x),
+                    y : int(y)
                 }
             elif key == "EXIT":
                 x, y = value.split(",")
                 self.exit : dict = {
-                    x,
-                    y
+                    x : int(x),
+                    y : int(y)
                 }
             elif key == "PERFECT":
                 self.perfect = value == "True"

@@ -4,7 +4,7 @@ from MazeConfig import MazeConfig
 
 class Maze:
     def __init__(self):
-        self.config = MazeConfig()
+        self.config : MazeConfig = MazeConfig()
 
 if __name__ == "__main__":
-    maze = Maze()
+    maze : Maze = Maze()

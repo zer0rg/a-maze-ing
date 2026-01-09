@@ -1,8 +1,17 @@
 from typing import Dict, Tuple, TypeAlias
 
-MazeCell: TypeAlias = Dict[str, bool]
+
+# Constantes para las direcciones bit a bit
+NORTH = 0b0001
+EAST = 0b0010
+SOUTH = 0b0100
+WEST = 0b1000
+
+# Tipos de dato para el laberinto
+MazeCell: TypeAlias = int
 Coordinate: TypeAlias = Tuple[int, int]
-#  {(x, y) : {'N': True, 'E': True, 'S': True, 'W': True}}
-#  No se que tal te parece esta forma de representar cada celda,
-#  ami me mola :)
 MazeBoard: TypeAlias = Dict[Coordinate, MazeCell]
+
+
+__all__ = ['MazeCell', 'MazeBoard', 'Coordinate', 'NORTH', 'EAST', 'SOUTH',
+           'WEST']

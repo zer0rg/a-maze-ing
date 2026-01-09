@@ -1,10 +1,6 @@
-from MazeConfig import MazeConfig
-from MazeRenderer import MazeRenderer
-from MazeGenerator import MazeGenerator
-from InteractiveMenu import InteractiveMenu
-from typing import List
+from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
+from types.maze import MazeBoard
 import sys
-sys.path.append("./src")
 
 
 class Maze:
@@ -15,7 +11,7 @@ class Maze:
         self.generator: MazeGenerator = MazeGenerator(self.config)
         self.menu: InteractiveMenu = InteractiveMenu()
         try:
-            self.board: List[List[int]] = self.generator.generate()
+            self.board: MazeBoard = self.generator.generate()
             self.renderer.render(self.board)
             # Propagar cualquier tipo de Error en el generador y renderer!!
         except Exception:

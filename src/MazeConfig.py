@@ -1,3 +1,4 @@
+from types.maze import Coordinate
 import sys
 
 
@@ -30,10 +31,10 @@ class MazeConfig:
             raise Exception("Value WIDTH is needed!")
         if not hasattr(self, 'height') or not self.height:
             raise Exception("Value HEIGHT is needed!")
-        if not hasattr(self, 'entry') or not isinstance(self.entry, dict):
+        if not hasattr(self, 'entry') or not isinstance(self.entry, tuple):
             raise Exception("Value ENTRY is needed and must be a valid \
                             coordinate pair!")
-        if not hasattr(self, 'exit') or not isinstance(self.exit, dict):
+        if not hasattr(self, 'exit') or not isinstance(self.exit, tuple):
             raise Exception("Value EXIT is needed and must be a valid \
                             coordinate pair!")
         if not hasattr(self, 'perfect'):
@@ -49,16 +50,10 @@ class MazeConfig:
                 self.height = int(value)
             elif key == "ENTRY":
                 x, y = value.split(",")
-                self.entry: dict = {
-                    x: int(x),
-                    y: int(y)
-                }
+                self.entry: Coordinate = (int(x), int(y))
             elif key == "EXIT":
                 x, y = value.split(",")
-                self.exit: dict = {
-                    x: int(x),
-                    y:  int(y)
-                }
+                self.exit: Coordinate = (int(x), int(y))
             elif key == "PERFECT":
                 self.perfect = value == "True"
             elif key == "OUTPUT_FILE":

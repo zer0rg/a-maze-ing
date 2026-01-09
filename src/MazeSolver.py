@@ -1,12 +1,12 @@
-from typing import List
+from types.maze import MazeBoard, Coordinate
 
 
 class MazeSolver:
 
-    def __init__(self, board: List[List[int]], entry: dict, exit: dict):
-        self.board: List[List[int]] = board
-        self.entry: dict = entry
-        self.exit: dict = exit
+    def __init__(self, board: MazeBoard, entry: Coordinate, exit: Coordinate):
+        self.board: MazeBoard = board
+        self.entry: Coordinate = entry
+        self.exit: Coordinate = exit
 
     def solve():
         pass

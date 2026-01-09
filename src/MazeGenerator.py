@@ -1,25 +1,17 @@
-from MazeConfig import MazeConfig
-from typing import Dict, Tuple, TypeAlias
-import sys
-sys.path.append("./src")
-
-
-MazeCell: TypeAlias = Dict[str, bool]
-#  {(x, y) : {'N': True, 'E': True, 'S': True, 'W': True}}
-#  No se que tal te parece esta forma de representar cada celda,
-#  ami me mola :)
-MazeBoard: TypeAlias = Dict[Tuple[int, int], MazeCell]
+from types.maze import MazeBoard, Coordinate
+from src.MazeConfig import MazeConfig
+from src.OutputFileHandler import OutputFileHandler
 
 
 class MazeGenerator:
 
     def __init__(self, config: MazeConfig):
-        self.width = config.width
-        self.height = config.height
-        self.perfect = config.perfect
-        self.entry = config.entry
-        self.exit = config.exit
-        self.output_file = config.output_file
+        self.width: int = config.width
+        self.height: int = config.height
+        self.perfect: bool = config.perfect
+        self.entry: Coordinate = config.entry
+        self.exit: Coordinate = config.exit
+        self.output_file: str = config.output_file
         self.maze: MazeBoard = self._initialize_board()
 
     def generate(self) -> MazeBoard:
@@ -30,7 +22,7 @@ class MazeGenerator:
 
     def save_to_file(self):
         with open(self.output_file, "w") as output_file:
-            pass
+            OutputFileHandler().save_file(output_file)
 
     def _initialize_board(self) -> MazeBoard:
         maze: MazeBoard = {}

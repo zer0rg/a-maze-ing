@@ -1,4 +1,5 @@
 import sys
+from typing import List
 sys.path.append("./src")
 from MazeConfig import MazeConfig
 from MazeRenderer import MazeRenderer
@@ -6,7 +7,7 @@ from MazeGenerator import MazeGenerator
 
 class Maze:
     def __init__(self):
-        self.board = []
+        self.board : List[List[int]] = []
         self.config : MazeConfig = MazeConfig()
         self.renderer: MazeRenderer = MazeRenderer()
         self.generator : MazeGenerator = MazeGenerator(self.config)

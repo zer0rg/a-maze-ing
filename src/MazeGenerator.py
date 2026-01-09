@@ -16,19 +16,21 @@ class MazeGenerator:
         self.perfect = config.perfect
         self.entry = config.entry
         self.exit = config.exit
-        self.maze : MazeBoard = self.initialize_board()
+        self.output_file = config.output_file
+        self.maze : MazeBoard = self._initialize_board()
 
     def generate(self)-> MazeBoard:
         pass
 #       Podemos generar un laberinto perfecto con backtracking recursivo,
 #       y si PERFECT=FALSE añadimos caminos extra de alguna manera???
+        return self.maze
 #       
 
     def save_to_file(self):
-        with open("output.txt", "w") as output_file:
+        with open(self.output_file, "w") as output_file:
             pass
 
-    def initialize_board(self) -> MazeBoard:
+    def _initialize_board(self) -> MazeBoard:
         maze : MazeBoard = {}
         for y in range(self.height):
             for x in range(self.width):

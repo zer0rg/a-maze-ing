@@ -15,19 +15,26 @@ class BFSSolver(MazeSolver):
         start, goal = self.entry, self.exit
         queue = deque([start])
         visited = {start}
-        parent = {self.entry: None}
+        parent = dict()
+        parent[start] = None
         while queue:
             node = queue.popleft()
             if node == self.exit:
-                print("Visited final node:", self.exit)
-                return 0
-            print("Visited: ", node)
+                return self.reconstruct_path(parent)
             for neighbor in MazeUtilities.get_neighbors(node, self.board):
                 if neighbor not in visited:
                     queue.append(neighbor)
                     visited.add(neighbor)
-        print("Final node not reached:", self.exit)
-        return -1
+                    parent[neighbor] = node
+        return []
+
+    def reconstruct_path(self, path: dict):
+        steps = [self.exit]
+        child = path[self.exit]
+        while child is not None:
+            steps.append(child)
+            child = path[child]
+        return steps
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List
 
-from maze_types.maze import Coordinate, MazeBoard, movements
+from self_typing.maze import Coordinate, MazeBoard
+
 
 class MazeSolver(ABC):
 
@@ -13,15 +13,3 @@ class MazeSolver(ABC):
     @abstractmethod
     def solve(self):
         pass
-
-    def get_rows(self):
-        try:
-            return max(x for x, y in self.board.keys())
-        except ValueError:
-            return -1
-
-    def get_cols(self):
-        try:
-            return max(y for x, y in self.board.keys())
-        except ValueError:
-            return -1

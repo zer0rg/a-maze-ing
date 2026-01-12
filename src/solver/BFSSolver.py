@@ -1,8 +1,6 @@
 import queue
 from collections import deque
-from queue import Empty
-
-from maze_types import MazeBoard
+from self_typing import MazeBoard
 from solver.MazeSolver import MazeSolver
 
 from MazeUtilities import MazeUtilities
@@ -10,8 +8,10 @@ from MazeUtilities import MazeUtilities
 
 class BFSSolver(MazeSolver):
 
+    def __init__(self, board: MazeBoard, entry, exit):
+        super().__init__(board, entry, exit)
+
     def solve(self):
-        cols, rows = self.get_cols(), self.get_rows()
         start, goal = self.entry, self.exit
         queue = deque([start])
         visited = {start}

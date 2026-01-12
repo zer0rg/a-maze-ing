@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List
 
-from maze_types import Coordinate, MOVEMENTS, MazeBoard
+from self_typing.maze import Coordinate, MOVEMENTS, MazeBoard
 
 
 class MazeUtilities(ABC):

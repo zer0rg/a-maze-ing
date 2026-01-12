@@ -1,5 +1,5 @@
-from maze_types.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
-from maze_types.maze import MOVEMENTS
+from self_typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
+from self_typing.maze import MOVEMENTS
 from src.MazeConfig import MazeConfig
 from src.OutputFileHandler import OutputFileHandler
 from src.MazeUtilities import MazeUtilities

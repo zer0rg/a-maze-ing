@@ -48,7 +48,7 @@ class MazeGenerator:
                           coord[1] + MOVEMENTS[direction][1])
 
             nx, ny = next_coord
-        # Verificar si la siguiente celda está dentro de limites y no visitada
+        # Verificar si la siguiente celda esta dentro de limites y no visitada
             if (1 <= nx <= self.width and 1 <= ny <= self.height
                     and next_coord not in self.visited):
                 # Romper la pared de la celda actual hacia la dirección

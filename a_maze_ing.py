@@ -18,12 +18,11 @@ class Maze:
             self.renderer.render(self.board)
             self.solver = BFSSolver(self.board,
                                     self.config.entry, self.config.exit)
+            self.solver.solve()
             OutputFileHandler.save_file(self.config.output_file, self.board)
-            self.menu.init_menu()
             # Propagar cualquier tipo de Error en el generador y renderer!!
         except Exception as e:
             print(f"There was an error generating the maze... : {e}")
-
 
 
 if __name__ == "__main__":

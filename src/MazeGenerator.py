@@ -31,33 +31,49 @@ class MazeGenerator:
         pass
 
     def _init_backtracking(self, coord: Coordinate):
-        x, y = coord
+            stack = [coord]
+            
+            while stack:  # Mientras la pila no esté vacía
+                current = stack[-1]  # Ver el último elemento sin sacarlo
+                x, y = current
 
-        if x < 1 or y < 1 or x > self.width or y > self.height:
-            return
+                if x < 1 or y < 1 or x > self.width or y > self.height:
+                    stack.pop()
+                    continue
 
-        if coord in self.visited:
-            return
-        self.visited.add(coord)
-        directions = [NORTH, SOUTH, EAST, WEST]
-        random.shuffle(directions)
-        opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
-        # Iterar sobre las direcciones en orden aleatorio
-        for direction in directions:
-            next_coord = (coord[0] + MOVEMENTS[direction][0],
-                          coord[1] + MOVEMENTS[direction][1])
+                if current in self.visited:
+                    stack.pop()
+                    continue
+                    
+                self.visited.add(current)
+                
+                directions = [NORTH, SOUTH, EAST, WEST]
+                random.shuffle(directions)
+                opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
+                
+                found_unvisited = False
+                # Iterar sobre las direcciones en orden aleatorio
+                for direction in directions:
+                    next_coord = (current[0] + MOVEMENTS[direction][0],
+                                current[1] + MOVEMENTS[direction][1])
 
-            nx, ny = next_coord
-        # Verificar si la siguiente celda esta dentro de limites y no visitada
-            if (1 <= nx <= self.width and 1 <= ny <= self.height
-                    and next_coord not in self.visited):
-                # Romper la pared de la celda actual hacia la dirección
-                self.maze[coord] = MazeUtilities.remove_wall(
-                    self.maze[coord], direction)
-                # Romper la pared opuesta de la celda destino
-                self.maze[next_coord] = MazeUtilities.remove_wall(
-                    self.maze[next_coord], opposites[direction])
-                self._init_backtracking(next_coord)
+                    nx, ny = next_coord
+                    # Verificar si la siguiente celda esta dentro de limites y no visitada
+                    if (1 <= nx <= self.width and 1 <= ny <= self.height
+                            and next_coord not in self.visited):
+                        # Romper la pared de la celda actual hacia la dirección
+                        self.maze[current] = MazeUtilities.remove_wall(
+                            self.maze[current], direction)
+                        # Romper la pared opuesta de la celda destino
+                        self.maze[next_coord] = MazeUtilities.remove_wall(
+                            self.maze[next_coord], opposites[direction])
+                        
+                        stack.append(next_coord)  # Añadir a la pila
+                        found_unvisited = True
+                        break 
+                
+                if not found_unvisited:
+                    stack.pop()
 
     def _initialize_board(self) -> MazeBoard:
         maze: MazeBoard = {}

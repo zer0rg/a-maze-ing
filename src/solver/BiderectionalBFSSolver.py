@@ -1,9 +1,7 @@
-import queue
 from collections import deque
-from self_typing import MazeBoard
-from solver.MazeSolver import MazeSolver
-
-from MazeUtilities import MazeUtilities
+from self_typing.maze import MazeBoard
+from src.solver.MazeSolver import MazeSolver
+from src.MazeUtilities import MazeUtilities
 
 
 class BidirectionalBFSSolver(MazeSolver):
@@ -15,7 +13,7 @@ class BidirectionalBFSSolver(MazeSolver):
         start, goal = self.entry, self.exit
         queue_start = deque([start])
         queue_goal = deque([goal])
-        parent_start  = dict()
+        parent_start = dict()
         parent_start[start] = None
         parent_goal = dict()
         parent_goal[goal] = None
@@ -24,9 +22,11 @@ class BidirectionalBFSSolver(MazeSolver):
         while queue_start and queue_goal:
             for visited in visited_start:
                 if visited in visited_goal:
-                    return self.reconstruct_path(parent_start, parent_goal, visited)
+                    return self.reconstruct_path(parent_start, parent_goal,
+                                                 visited)
             node_start = queue_start.popleft()
-            for neighbor in MazeUtilities.get_neighbors(node_start, self.board):
+            for neighbor in MazeUtilities.get_neighbors(node_start, 
+                                                        self.board):
                 if neighbor not in visited_start:
                     queue_start.append(neighbor)
                     visited_start.add(neighbor)
@@ -54,45 +54,3 @@ class BidirectionalBFSSolver(MazeSolver):
             cur = path_goal[cur]
 
         return start_half + goal_half
-
-
-if __name__ == '__main__':
-    maze_board = {
-        # Fila 0 (pared norte)
-        (0, 0): 9,  # Norte + Oeste
-        (0, 1): 1,
-        (0, 2): 1,
-        (0, 3): 1,
-        (0, 4): 3,  # Norte + Este
-
-        # Fila 1 (interior sin paredes)
-        (1, 0): 8,  # Oeste
-        (1, 1): 0,
-        (1, 2): 0,
-        (1, 3): 0,
-        (1, 4): 2,  # Este
-
-        # Fila 2 (interior sin paredes)
-        (2, 0): 8,
-        (2, 1): 0,
-        (2, 2): 0,
-        (2, 3): 0,
-        (2, 4): 2,
-
-        # Fila 3 (interior sin paredes)
-        (3, 0): 8,
-        (3, 1): 0,
-        (3, 2): 0,
-        (3, 3): 0,
-        (3, 4): 2,
-
-        # Fila 4 (pared sur)
-        (4, 0): 12,  # Sur + Oeste
-        (4, 1): 4,
-        (4, 2): 2,
-        (4, 3): 4,
-        (4, 4): 6,  # Sur + Este
-    }
-
-    MazeSolver = BidirectionalBFSSolver(maze_board, (0, 0), (4,4))
-    print(MazeSolver.solve())

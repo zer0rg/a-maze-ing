@@ -15,9 +15,9 @@ class MazeUtilities(ABC):
         neighbors: List[Coordinate] = []
         x_1, y_1 = coord
         cell = maze_board[(x_1, y_1)]
-        for direction, move in MOVEMENTS.items():
+        for direction, coord in MOVEMENTS.items():
             if not MazeUtilities.has_wall(cell, direction):
-                x_2, y_2 = move
+                x_2, y_2 = coord
                 neighbors.append((x_1 + x_2, y_2 + y_1))
         return neighbors
 

@@ -1,7 +1,6 @@
 from self_typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from self_typing.maze import MOVEMENTS
 from src.MazeConfig import MazeConfig
-from src.OutputFileHandler import OutputFileHandler
 from src.MazeUtilities import MazeUtilities
 import random
 
@@ -28,6 +27,7 @@ class MazeGenerator:
         return self.maze
 
     def _add_extra_paths(self):
+        # TODO
         pass
 
     def _init_backtracking(self, coord: Coordinate):
@@ -58,10 +58,6 @@ class MazeGenerator:
                 self.maze[next_coord] = MazeUtilities.remove_wall(
                     self.maze[next_coord], opposites[direction])
                 self._init_backtracking(next_coord)
-
-    def save_to_file(self):
-        with open(self.output_file, "w") as output_file:
-            OutputFileHandler().save_file(output_file)
 
     def _initialize_board(self) -> MazeBoard:
         maze: MazeBoard = {}

@@ -1,4 +1,8 @@
+from self_typing.maze import MazeBoard
+
+
 class OutputFileHandler:
 
-    def save_file():
+    @staticmethod
+    def save_file(maze: MazeBoard):
         pass

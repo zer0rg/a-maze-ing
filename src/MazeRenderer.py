@@ -7,5 +7,5 @@ class MazeRenderer:
         pass
 
     def render(self, board: MazeBoard):
-        print(board)
+        print("MAZE: ", board)
 #       Terminal o MiniLibx?

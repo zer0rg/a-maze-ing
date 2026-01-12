@@ -55,7 +55,12 @@ class MazeConfig:
                 x, y = value.split(",")
                 self.exit: Coordinate = (int(x), int(y))
             elif key == "PERFECT":
-                self.perfect: bool = value == "True"
+                if value == "True":
+                    self.perfect: bool = True
+                elif value == "False":
+                    self.perfect: bool = False
+                else:
+                    raise Exception("Perfect value must be 'True' or 'False'")
             elif key == "OUTPUT_FILE":
                 self.output_file: str = value
             else:

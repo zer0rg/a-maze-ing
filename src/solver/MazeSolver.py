@@ -13,3 +13,6 @@ class MazeSolver(ABC):
     @abstractmethod
     def solve(self):
         pass
+
+    @abstractmethod
+    def reconstruct_path(self, *args, **kwargs): pass

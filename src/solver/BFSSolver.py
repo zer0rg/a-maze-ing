@@ -1,5 +1,6 @@
 import queue
 from collections import deque
+
 from self_typing import MazeBoard
 from solver.MazeSolver import MazeSolver
 
@@ -34,10 +35,12 @@ class BFSSolver(MazeSolver):
         while child is not None:
             steps.append(child)
             child = path[child]
+        steps.reverse()
         return steps
 
 
 if __name__ == '__main__':
+
     maze_board: MazeBoard = {
         (0, 0): 13,
         (0, 1): 3,

@@ -1,5 +1,5 @@
 from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
-from types.maze import MazeBoard
+from maze_types.maze import MazeBoard
 import sys
 
 

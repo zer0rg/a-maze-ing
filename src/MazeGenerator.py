@@ -1,4 +1,4 @@
-from types.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
+from maze_types.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from src.MazeConfig import MazeConfig
 from src.OutputFileHandler import OutputFileHandler
 

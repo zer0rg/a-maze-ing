@@ -1,8 +1,7 @@
 from collections import deque
-from self_typing import MazeBoard
-from solver.MazeSolver import MazeSolver
-
-from MazeUtilities import MazeUtilities
+from self_typing.maze import MazeBoard
+from src.solver.MazeSolver import MazeSolver
+from src.MazeUtilities import MazeUtilities
 
 
 class BFSSolver(MazeSolver):

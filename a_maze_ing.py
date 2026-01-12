@@ -1,4 +1,5 @@
 from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
+from src.solver.BFSSolver import BFSSolver
 from self_typing import MazeBoard
 import sys
 
@@ -13,6 +14,10 @@ class Maze:
         try:
             self.board: MazeBoard = self.generator.generate()
             self.renderer.render(self.board)
+            self.solver = BFSSolver(self.board,
+                                    self.config.entry, self.config.exit)
+            solution = self.solver.solve()
+            print("SOLUTION:", solution)
             # Propagar cualquier tipo de Error en el generador y renderer!!
         except Exception as e:
             print(f"There was an error generating the maze... : {e}")

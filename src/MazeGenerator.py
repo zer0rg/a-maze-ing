@@ -21,7 +21,14 @@ class MazeGenerator:
 
     def generate(self) -> MazeBoard:
         self._init_backtracking(self.entry)
+        # Si el laberinto no tiene que ser perfecto deberemos añadir
+        # nuevas rutas TODO
+        if not self.perfect:
+            self._add_extra_paths()
         return self.maze
+
+    def _add_extra_paths(self):
+        pass
 
     def _init_backtracking(self, coord: Coordinate):
         x, y = coord
@@ -31,12 +38,9 @@ class MazeGenerator:
 
         if coord in self.visited:
             return
-        # Marcar la celda actual como visitada
         self.visited.add(coord)
-        # Crear lista de direcciones y aleatorizarla
         directions = [NORTH, SOUTH, EAST, WEST]
         random.shuffle(directions)
-        # Diccionario de direcciones opuestas
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
         # Iterar sobre las direcciones en orden aleatorio
         for direction in directions:

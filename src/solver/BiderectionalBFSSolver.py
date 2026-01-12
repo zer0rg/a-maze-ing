@@ -37,7 +37,7 @@ class BidirectionalBFSSolver(MazeSolver):
                     queue_goal.append(neighbor)
                     visited_goal.add(neighbor)
                     parent_goal[neighbor] = node_goal
-        return [parent_start, parent_goal]
+        return None
 
     def reconstruct_path(self, path_start, path_goal, meeting_node):
         start_half = []

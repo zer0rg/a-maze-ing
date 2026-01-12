@@ -1,4 +1,4 @@
-from self_typing.maze import MazeBoard
+from maze_types.maze import MazeBoard
 
 
 class MazeRenderer:

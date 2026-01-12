@@ -7,7 +7,7 @@ EAST = 0b0010
 SOUTH = 0b0100
 WEST = 0b1000
 
-movements = {
+MOVEMENTS = {
     NORTH: (0, -1),
     SOUTH: (0, 1),
     EAST: (1, 0),

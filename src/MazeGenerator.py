@@ -1,4 +1,4 @@
-from maze_types.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
+from typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from src.MazeConfig import MazeConfig
 from src.OutputFileHandler import OutputFileHandler
 
@@ -44,19 +44,3 @@ class MazeGenerator:
             for x in range(self.width):
                 maze[(x, y)] = NORTH | EAST | SOUTH | WEST
         return maze
-
-#   Verfica si la celda tiene pared en esa direccion
-    @staticmethod
-    def has_wall(cell: int, direction: int) -> bool:
-        return bool(cell & direction)
-
-#   Elimina una pared de una celda en una direccion
-    @staticmethod
-    def remove_wall(cell: int, direction: int) -> int:
-        return cell & ~direction
-
-#   Añade una pared a una celda
-    @staticmethod
-    def add_wall(cell: int, direction: int) -> int:
-        """Añade una pared a una celda"""
-        return cell | direction

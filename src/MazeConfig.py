@@ -1,4 +1,4 @@
-from maze_types.maze import Coordinate
+from typing.maze import Coordinate
 import sys
 
 

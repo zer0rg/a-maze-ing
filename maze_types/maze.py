@@ -21,4 +21,4 @@ MazeBoard: TypeAlias = Dict[Coordinate, MazeCell]
 
 
 __all__ = ['MazeCell', 'MazeBoard', 'Coordinate', 'NORTH', 'EAST', 'SOUTH',
-           'WEST']
+           'WEST', 'MOVEMENTS']

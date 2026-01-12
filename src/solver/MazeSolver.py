@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from typing.maze import Coordinate, MazeBoard
+from maze_types.maze import Coordinate, MazeBoard
 
 
 class MazeSolver(ABC):

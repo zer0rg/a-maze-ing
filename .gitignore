@@ -6,9 +6,11 @@
 venv/
 env/
 *.egg-info/
+.venv
 
 #Ignore Pychar files
 .idea
+.vscode
 
 #MLX FILES
 mlx_CLXV

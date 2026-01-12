@@ -1,5 +1,7 @@
-from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer, BFSSolver
-from self_typing.maze import MazeBoard
+from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
+from src.solver.BFSSolver import BFSSolver
+from src import OutputFileHandler
+from self_typing import MazeBoard
 import sys
 
 
@@ -7,17 +9,21 @@ class Maze:
 
     def __init__(self, config_file):
         self.config: MazeConfig = MazeConfig(config_file)
-        self.renderer: MazeRenderer = MazeRenderer()
+        self.renderer: MazeRenderer = MazeRenderer(self.config.width * 10,
+                                                   self.config.height * 10)
         self.generator: MazeGenerator = MazeGenerator(self.config)
         self.menu: InteractiveMenu = InteractiveMenu()
         try:
             self.board: MazeBoard = self.generator.generate()
             self.renderer.render(self.board)
-            self.solver = BFSSolver(self.board, self.config.entry, self.config.exit)
-            self.solver.solve()
+            self.solver = BFSSolver(self.board,
+                                    self.config.entry, self.config.exit)
+            OutputFileHandler.save_file(self.config.output_file, self.board)
+            self.menu.init_menu()
             # Propagar cualquier tipo de Error en el generador y renderer!!
-        except Exception:
-            print("There was an error generating the maze...")
+        except Exception as e:
+            print(f"There was an error generating the maze... : {e}")
+
 
 
 if __name__ == "__main__":

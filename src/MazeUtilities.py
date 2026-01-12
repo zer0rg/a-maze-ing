@@ -1,14 +1,17 @@
 from abc import ABC
 from typing import List
 
-from self_typing import Coordinate, MOVEMENTS, MazeBoard
+from self_typing.maze import Coordinate, MOVEMENTS, MazeBoard
 
 
 class MazeUtilities(ABC):
 
     @staticmethod
 #   Devuelve una lista con las celdas vecinas que no tienen pared entre sí
-    def get_neighbors(coord: Coordinate, maze_board: MazeBoard) -> list[tuple[int, int]]:
+    def get_neighbors(
+            coord: Coordinate,
+            maze_board: MazeBoard
+    ) -> list[tuple[int, int]]:
         neighbors: List[Coordinate] = []
         x_1, y_1 = coord
         cell = maze_board[(x_1, y_1)]

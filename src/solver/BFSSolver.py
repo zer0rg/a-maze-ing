@@ -1,10 +1,7 @@
-import queue
 from collections import deque
-
-from self_typing import MazeBoard
-from solver.MazeSolver import MazeSolver
-
-from MazeUtilities import MazeUtilities
+from self_typing.maze import MazeBoard
+from src.solver.MazeSolver import MazeSolver
+from src.MazeUtilities import MazeUtilities
 
 
 class BFSSolver(MazeSolver):
@@ -13,11 +10,10 @@ class BFSSolver(MazeSolver):
         super().__init__(board, entry, exit)
 
     def solve(self):
-        start, goal = self.entry, self.exit
-        queue = deque([start])
-        visited = {start}
+        queue = deque([self.entry])
+        visited = {self.entry}
         parent = dict()
-        parent[start] = None
+        parent[self.entry] = None
         while queue:
             node = queue.popleft()
             if node == self.exit:
@@ -37,21 +33,3 @@ class BFSSolver(MazeSolver):
             child = path[child]
         steps.reverse()
         return steps
-
-
-if __name__ == '__main__':
-
-    maze_board: MazeBoard = {
-        (0, 0): 13,
-        (0, 1): 3,
-        (0, 2): 15,
-        (1, 0): 3,
-        (1, 1): 10,
-        (1, 2): 12,
-        (2, 0): 15,
-        (2, 1): 12,
-        (2, 2): 7,
-    }
-
-    MazeSolver = BFSSolver(maze_board, (0, 0), (2,2))
-    print(MazeSolver.solve())

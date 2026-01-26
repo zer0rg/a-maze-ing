@@ -1,3 +1,5 @@
+import os
+
 class InteractiveMenu:
 
     def __init__(self):
@@ -17,8 +19,11 @@ class InteractiveMenu:
         print("1. Generate a new maze")
         print("2. Show the solution path")
         print("3. Exit")
-        selection = input(int("=>"))
-        selection = input("=>")  # Primero recibe el input como string
+        try:
+            selection = int(input("=> "))
+        except Exception:
+            print("Error: Only integers are admitted")
+            return self.init_menu()
         if selection:
             try:
                 option = int(selection)

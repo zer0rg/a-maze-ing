@@ -1,3 +1,3 @@
-from .maze import MazeBoard, MazeCell, Coordinate, MOVEMENTS
+from .maze import MazeBoard, MazeWalls, Coordinate, MOVEMENTS, NORTH, EAST, SOUTH, WEST
 
-__all__ = ['MazeCell', 'MazeBoard', 'Coordinate', 'MOVEMENTS']
+__all__ = ['MazeWalls', 'MazeBoard', 'Coordinate', 'MOVEMENTS', 'NORTH', 'EAST', 'SOUTH', 'WEST']

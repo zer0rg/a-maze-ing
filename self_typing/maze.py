@@ -1,4 +1,7 @@
-from typing import Dict, Tuple, TypeAlias
+from typing import Dict, Tuple, TypeAlias, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.Cell import Cell
 
 
 # Constantes para las direcciones bit a bit
@@ -15,10 +18,10 @@ MOVEMENTS = {
 }
 
 # Tipos de dato para el laberinto
-MazeCell: TypeAlias = int
+MazeWalls: TypeAlias = int
 Coordinate: TypeAlias = Tuple[int, int]
-MazeBoard: TypeAlias = Dict[Coordinate, MazeCell]
+MazeBoard: TypeAlias = Dict[Coordinate, 'Cell']
 
 
-__all__ = ['MazeCell', 'MazeBoard', 'Coordinate', 'NORTH', 'EAST', 'SOUTH',
+__all__ = ['MazeWalls', 'MazeBoard', 'Coordinate', 'NORTH', 'EAST', 'SOUTH',
            'WEST']

@@ -2,6 +2,7 @@ from self_typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from self_typing.maze import MOVEMENTS
 from src.MazeConfig import MazeConfig
 from src.MazeUtilities import MazeUtilities
+from src.Cell import Cell
 import random
 
 
@@ -15,16 +16,28 @@ class MazeGenerator:
         self.exit: Coordinate = config.exit
         self.output_file: str = config.output_file
         self.maze: MazeBoard = self._initialize_board()
-        # Set de datos para marcar las casillas ya visitadas
         self.visited: set = set()
 
-    def generate(self) -> MazeBoard:
+    def generate(self):
         self._init_backtracking(self.entry)
         # Si el laberinto no tiene que ser perfecto deberemos añadir
         # nuevas rutas TODO
         if not self.perfect:
             self._add_extra_paths()
+        
         return self.maze
+
+    def generate_step_by_step(self):
+        """
+        Generador que yield el estado del maze en cada paso.
+        Por ahora solo muestra el maze inicializado (todas las paredes cerradas).
+        """
+        # Yield el estado inicial con todas las celdas cerradas
+        yield {
+            'current': (1, 1),
+            'action': 'initialized',
+            'message': 'Laberinto inicializado con todas las paredes'
+        }
 
     def _add_extra_paths(self):
         # TODO
@@ -41,17 +54,17 @@ class MazeGenerator:
                     stack.pop()
                     continue
 
-                if current in self.visited:
+                if self.maze[current].visited:
                     stack.pop()
                     continue
                     
-                self.visited.add(current)
+                self.maze[current].visited = True
                 
                 directions = [NORTH, SOUTH, EAST, WEST]
                 random.shuffle(directions)
                 opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
                 
-                found_unvisited = False
+                found_unvisited: bool = False
                 # Iterar sobre las direcciones en orden aleatorio
                 for direction in directions:
                     next_coord = (current[0] + MOVEMENTS[direction][0],
@@ -62,11 +75,9 @@ class MazeGenerator:
                     if (1 <= nx <= self.width and 1 <= ny <= self.height
                             and next_coord not in self.visited):
                         # Romper la pared de la celda actual hacia la dirección
-                        self.maze[current] = MazeUtilities.remove_wall(
-                            self.maze[current], direction)
+                        self.maze[current].remove_wall(direction)
                         # Romper la pared opuesta de la celda destino
-                        self.maze[next_coord] = MazeUtilities.remove_wall(
-                            self.maze[next_coord], opposites[direction])
+                        self.maze[next_coord].remove_wall(opposites[direction])
                         
                         stack.append(next_coord)  # Añadir a la pila
                         found_unvisited = True
@@ -77,7 +88,12 @@ class MazeGenerator:
 
     def _initialize_board(self) -> MazeBoard:
         maze: MazeBoard = {}
+
         for y in range(1, self.height + 1):
             for x in range(1, self.width + 1):
-                maze[(x, y)] = NORTH | EAST | SOUTH | WEST
+                maze[(x, y)] = Cell((x, y))
+    
+        for cell in maze.values():
+            cell.set_maze_reference(maze)
+
         return maze

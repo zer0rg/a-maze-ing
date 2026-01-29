@@ -24,16 +24,28 @@ class InteractiveMenu:
         print("2. Show the solution path")
         print("3. Change background color")
         print("4. Exit")
+        print()
         try:
-            return int(input("=> "))
+            return int(input("Select Option => "))
         except Exception:
             print("Error: Only integers are admitted")
             return self.init_menu()
+    def ask_color_code(self) -> int | None:
+        try:
+            color: int = int(input("\nWrite the HEX color code => "))
+        except Exception:
+            print("Color must be valid hexadecimal (0xFFFFFF) or integer")
+            return None
         
+        return color
 
     def print_config(self):
-        print(f"Width: {self.config.width} \
-Height: {self.config.height} Perfect: {self.config.perfect}")
+        print("Generation configuration:")
+        print(f"Width: {self.config.width} | \
+Height: {self.config.height} | \
+Entry: {self.config.entry} | \
+Exit: {self.config.exit} | \
+Perfect: {self.config.perfect}")
 
     def print_logo(self):
         print("""

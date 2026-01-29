@@ -23,7 +23,7 @@ class MazeGenerator:
         print("\nGenerating...")
         # Simula 50 roturas aleatorias para probar el stream con yield
         # (ALGORITMO FINAL TODO)
-        for i in range(50):
+        for i in range(400):
             # Elegir una celda aleatoria
             x: int = random.randint(1, self.width)
             y: int = random.randint(1, self.height)
@@ -54,7 +54,7 @@ class MazeGenerator:
                     yield {
                         'current': current,
                         'action': 'breaking_wall',
-                        'modified_cells': self.maze,
+                        'modified_cells': [self.maze[current], self.maze[next_coord]],
                         'message': f'Rompiendo pared {i+1}/50: {current} -> \
 {next_coord}'
                     }

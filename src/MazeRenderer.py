@@ -41,7 +41,7 @@ class MazeRenderer:
         # Estados de renderizado
         self.wall_color = 0xFFFFFF
         self.bg_color = 0x000000
-        
+
         self.visited_color = 0x000000
 
         # Estado de generación
@@ -76,13 +76,11 @@ class MazeRenderer:
                     modified_cells = step_info.get('modified_cells', [])
 
                     if modified_cells:
-                        self._draw_maze()
+                        self._draw_cells_incremental(modified_cells)
 
                 except StopIteration:
                     self.generation_complete = True
                     self._draw_maze()  # Redibujar completo al final
-
-                    time.sleep(2)
                     self.mlx.mlx_loop_exit(self.mlx_ptr)
 
         return 0
@@ -102,28 +100,26 @@ class MazeRenderer:
         self.board = board
         self.generation_generator = generator
         self.generation_complete = False
-        self.last_generation_time = time.time()
+        self.last_generation_time = time.time()        
+        self._draw_maze()
 
     def set_wall_color(self, color: int):
         """Cambia el color de las paredes."""
         self.wall_color = color
         if self.board:
             self._draw_maze()
-            self.sync()
 
     def set_background_color(self, color: int):
         """Cambia el color de fondo."""
         self.bg_color = color
         if self.board:
             self._draw_maze()
-            self.sync()
 
     def set_visited_color(self, color: int):
         """Cambia el color de celdas visitadas."""
         self.visited_color = color
         if self.board:
             self._draw_maze()
-            self.sync()
         if self.board:
             self._draw_maze()
 
@@ -173,6 +169,9 @@ little')
         if not self.board:
             return
 
+        # Sincronizar imagen para escritura
+        self.mlx.mlx_sync(self.mlx_ptr, Mlx.SYNC_IMAGE_WRITABLE, self.img_ptr)
+
         # Calcular dimensiones
         max_x = max(x for x, y in self.board.keys())
         max_y = max(y for x, y in self.board.keys())
@@ -190,6 +189,11 @@ little')
 
             # Luego dibujar la celda actualizada
             self._draw_cell(cell, cell_width, cell_height)
+
+        # Mostrar la imagen en la ventana
+        self.mlx.mlx_put_image_to_window(self.mlx_ptr,
+                                         self.win_ptr,
+                                         self.img_ptr, 0, 0)
 
     def _draw_cell(self, cell: Cell, cell_width: int, cell_height: int):
         """Dibuja una celda individual con los colores actuales"""
@@ -259,10 +263,10 @@ little')
             for t in range(thickness):
                 px, py = int(x), int(y)
 
-                # Aplicar grosor perpendicular a la dirección de la línea
-                if dx > dy:  # Línea más horizontal - grosor vertical
+                # Aplicar grosor perpendicular a la direccion de la línea
+                if dx > dy:
                     py = py + t - thickness // 2
-                else:  # Línea más vertical - grosor horizontal
+                else: 
                     px = px + t - thickness // 2
 
                 # Verificar límites y dibujar

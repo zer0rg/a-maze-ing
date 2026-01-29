@@ -32,33 +32,36 @@ class Main:
                 option = int(selection)
                 if option == 1:
                     self.start_generation()
-                if option == 2:
+                elif option == 2:
                     # TODO
-                    self.menu.init_menu()
-                if option == 3:
+                    # self.solver.solve()
+                    self.main_menu()
+                elif option == 3:
                     # Cambiar color (automáticamente redibuja y sincroniza)
                     self.change_background_color()
-                if option == 4:
+                elif option == 4:
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("See ya!")
                     sys.exit(0)
+                else:
+                    self.main_menu()
             except ValueError:
-                print("Please enter a valid number")
+                self.main_menu()
 
-    def change_background_color(self):
-        try:
-            select = int(input("Write the HEX color code => "))
-            self.renderer.set_background_color(select)
-            self.renderer.set_visited_color(select)
-        except Exception:
-            print("Color must be valid hexadecimal (0xFFFFFF) or integer")
+    def change_background_color(self) -> None:
+        select = self.menu.ask_color_code()
+        if select is None:
             self.change_background_color()
+        self.renderer.set_background_color(select)
+        self.renderer.set_visited_color(select)
+        self.renderer.sync()
+        self.main_menu()
 
+    def main_menu(self):
         result: int = self.menu.init_menu()
         self.exec_result(result)
 
-
-    def start_generation(self):
+    def start_generation(self) -> None:
         try:
             self.generator.maze = self.generator._initialize_board()
             generation = self.generator.generate_step_by_step()
@@ -67,9 +70,7 @@ class Main:
             self.renderer.run()
             OutputFileHandler().save_file(self.config.output_file,
                                           self.generator.maze)
-            result: int = self.menu.init_menu()
-            self.exec_result(result)
-
+            self.main_menu()
         except Exception as e:
             print(f"Fatal error occurred: {e}")
             if hasattr(self, 'renderer'):

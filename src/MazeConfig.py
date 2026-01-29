@@ -5,9 +5,13 @@ import sys
 class MazeConfig:
 
     def __init__(self, config_file):
+        print("Reading config file...")
+
         try:
             self.parse_file(config_file)
             self.check_config()
+            print("[OK] Config File readed succesfully")
+
         except Exception as e:
             print(f"Config File Error: {e}")
             sys.exit(1)

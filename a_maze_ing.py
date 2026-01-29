@@ -1,16 +1,15 @@
 #!/usr/bin/python3
-from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
+from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer, OutputFileHandler
 from src.solver.BFSSolver import BFSSolver
 import sys
+import os
 
 
 class Main:
 
     def __init__(self, config_file):
         # Parseo de archivo configuracion en objeto config
-        print("Reading config file...")
         self.config: MazeConfig = MazeConfig(config_file)
-        print("[OK] Config File readed succesfully")
 
         # Calcular tamaño de ventana para celdas de ~20 píxeles
         window_width = min(self.config.width * 20, 1920)
@@ -23,9 +22,41 @@ class Main:
                                             self.generator.maze,
                                             self.config.entry,
                                             self.config.exit)
-        self.menu: InteractiveMenu = InteractiveMenu()
+        self.menu: InteractiveMenu = InteractiveMenu(self.config)
         # Generacion y renderizado del primer laberinto y inicio del menu
         self.start_generation()
+
+    def exec_result(self, selection: int):
+        if selection:
+            try:
+                option = int(selection)
+                if option == 1:
+                    self.start_generation()
+                if option == 2:
+                    # TODO
+                    self.menu.init_menu()
+                if option == 3:
+                    # Cambiar color (automáticamente redibuja y sincroniza)
+                    self.change_background_color()
+                if option == 4:
+                    os.system('cls' if os.name == 'nt' else 'clear')
+                    print("See ya!")
+                    sys.exit(0)
+            except ValueError:
+                print("Please enter a valid number")
+
+    def change_background_color(self):
+        try:
+            select = int(input("Write the HEX color code => "))
+            self.renderer.set_background_color(select)
+            self.renderer.set_visited_color(select)
+        except Exception:
+            print("Color must be valid hexadecimal (0xFFFFFF) or integer")
+            self.change_background_color()
+
+        result: int = self.menu.init_menu()
+        self.exec_result(result)
+
 
     def start_generation(self):
         try:
@@ -34,7 +65,11 @@ class Main:
             self.renderer.initialize_generation(self.generator.maze,
                                                 generation)
             self.renderer.run()
-            self.menu.init_menu(self.start_generation)
+            OutputFileHandler().save_file(self.config.output_file,
+                                          self.generator.maze)
+            result: int = self.menu.init_menu()
+            self.exec_result(result)
+
         except Exception as e:
             print(f"Fatal error occurred: {e}")
             if hasattr(self, 'renderer'):

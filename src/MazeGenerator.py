@@ -20,12 +20,13 @@ class MazeGenerator:
         self.visited: set = set()
 
     def generate_step_by_step(self):
+        print("\nGenerating...")
         # Simula 50 roturas aleatorias para probar el stream con yield
         # (ALGORITMO FINAL TODO)
         for i in range(50):
             # Elegir una celda aleatoria
-            x = random.randint(1, self.width)
-            y = random.randint(1, self.height)
+            x: int = random.randint(1, self.width)
+            y: int = random.randint(1, self.height)
             current = (x, y)
 
             if current not in self.maze:

@@ -41,6 +41,7 @@ class MazeRenderer:
         # Estados de renderizado
         self.wall_color = 0xFFFFFF
         self.bg_color = 0x000000
+        
         self.visited_color = 0x000000
 
         # Estado de generación
@@ -108,16 +109,21 @@ class MazeRenderer:
         self.wall_color = color
         if self.board:
             self._draw_maze()
+            self.sync()
 
     def set_background_color(self, color: int):
         """Cambia el color de fondo."""
         self.bg_color = color
         if self.board:
             self._draw_maze()
+            self.sync()
 
     def set_visited_color(self, color: int):
         """Cambia el color de celdas visitadas."""
         self.visited_color = color
+        if self.board:
+            self._draw_maze()
+            self.sync()
         if self.board:
             self._draw_maze()
 
@@ -131,9 +137,10 @@ class MazeRenderer:
         # Sincronizar imagen para escritura
         self.mlx.mlx_sync(self.mlx_ptr, Mlx.SYNC_IMAGE_WRITABLE, self.img_ptr)
 
-        # Limpiar el buffer de imagen (llenar de negro)
+        # Limpiar el buffer de imagen con el color de fondo
+        bg_with_alpha = 0xFF000000 | self.bg_color  # Añadir canal alpha
         for i in range(0, len(self.img_buffer), 4):
-            self.img_buffer[i:i+4] = (0xFF000000).to_bytes(4, 'little')
+            self.img_buffer[i:i+4] = bg_with_alpha.to_bytes(4, 'little')
 
         # Calcular dimensiones de cada celda
         max_x = max(x for x, y in self.board.keys())
@@ -276,12 +283,13 @@ little')
 
     # ===== CONTROL DEL LOOP =====
 
+    def sync(self):
+        self.mlx.mlx_do_sync(self.mlx_ptr)
+
     def run(self):
-        """Inicia el loop principal"""
         self.mlx.mlx_loop(self.mlx_ptr)
 
     def destroy(self):
-        """Limpia recursos al finalizar."""
         self.running = False
         if self.win_ptr:
             self.mlx.mlx_loop_exit(self.mlx_ptr)

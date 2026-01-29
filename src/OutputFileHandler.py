@@ -5,4 +5,5 @@ class OutputFileHandler:
 
     @staticmethod
     def save_file(file_name: str, maze: MazeBoard):
-        pass
+        with open(file_name, "w") as file:
+            file.write("Output bitch")

@@ -1,4 +1,4 @@
-from self_typing import Coordinate
+from maze_types.maze import Coordinate
 import sys
 
 
@@ -55,12 +55,7 @@ class MazeConfig:
                 x, y = value.split(",")
                 self.exit: Coordinate = (int(x), int(y))
             elif key == "PERFECT":
-                if value == "True":
-                    self.perfect: bool = True
-                elif value == "False":
-                    self.perfect: bool = False
-                else:
-                    raise Exception("Perfect value must be 'True' or 'False'")
+                self.perfect: bool = value == "True"
             elif key == "OUTPUT_FILE":
                 self.output_file: str = value
             else:

@@ -1,28 +1,30 @@
 from collections import deque
-from self_typing.maze import MazeBoard
+from self_typing.maze import MazeBoard, Coordinate
 from src.solver.MazeSolver import MazeSolver
-from src.MazeUtilities import MazeUtilities
+from src.Cell import Cell
 
 
 class BFSSolver(MazeSolver):
 
-    def __init__(self, board: MazeBoard, entry, exit):
+    def __init__(self, board: MazeBoard, entry: Coordinate, exit):
         super().__init__(board, entry, exit)
 
     def solve(self):
-        queue = deque([self.entry])
-        visited = {self.entry}
+        entry_cell: Cell = self.board[self.entry]
+        exit_cell: Cell = self.board[self.exit]
+        queue = deque([entry_cell])
         parent = dict()
         parent[self.entry] = None
         while queue:
-            node = queue.popleft()
-            if node == self.exit:
+            actual_node: Cell = queue.popleft()
+            if actual_node.coord == exit_cell.coord:
                 return self.reconstruct_path(parent)
-            for neighbor in MazeUtilities.get_neighbors(node, self.board):
-                if neighbor not in visited:
-                    queue.append(neighbor)
-                    visited.add(neighbor)
-                    parent[neighbor] = node
+            for cell in self.board[(actual_node.coord)].neighbors:
+                print(cell)
+                #    if neighbor not in visited:
+                #    queue.append(neighbor)
+                #    visited.add(neighbor)
+                #    parent[neighbor] = node
         return []
 
     def reconstruct_path(self, path: dict):

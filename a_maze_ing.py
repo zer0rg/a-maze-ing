@@ -1,46 +1,47 @@
 #!/usr/bin/python3
 from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
 from src.solver.BFSSolver import BFSSolver
-from src import OutputFileHandler
-from self_typing import MazeBoard
 import sys
 
 
-class Maze:
+class Main:
 
     def __init__(self, config_file):
+        # Parseo de archivo configuracion en objeto config
+        print("Reading config file...")
         self.config: MazeConfig = MazeConfig(config_file)
-        self.renderer: MazeRenderer = MazeRenderer(self.config.width * 10,
-                                                   self.config.height * 10)
+        print("[OK] Config File readed succesfully")
+
+        # Calcular tamaño de ventana para celdas de ~20 píxeles
+        window_width = min(self.config.width * 20, 1920)
+        window_height = min(self.config.height * 20, 1080)
+
+        # Instanciar clases principales
+        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height)
         self.generator: MazeGenerator = MazeGenerator(self.config)
+        self.solver: BFSSolver = BFSSolver(
+                                            self.generator.maze,
+                                            self.config.entry,
+                                            self.config.exit)
         self.menu: InteractiveMenu = InteractiveMenu()
+        # Generacion y renderizado del primer laberinto y inicio del menu
+        self.start_generation()
+
+    def start_generation(self):
         try:
-            # Iniciar el renderer en thread separado
-            self.renderer.start_loop()
-            
-            # Renderizar el maze inicial vacío
-            self.renderer.render(self.generator.maze)
-            
-            # Configurar animación de generación
-            animation = self.generator.generate_step_by_step()
-            self.renderer.set_animation(animation)
-            # Esperar a que se cierre la ventana
-            self.renderer.wait_until_closed()
-            self.renderer.destroy()
-            
-            # TODO: Menú interactivo
-            # self.menu.init_menu()
-            #self.solver = BFSSolver(self.board,
-            #                        self.config.entry, self.config.exit)
-            #self.solver.solve()
-            #OutputFileHandler.save_file(self.config.output_file, self.board)
+            self.generator.maze = self.generator._initialize_board()
+            generation = self.generator.generate_step_by_step()
+            self.renderer.initialize_generation(self.generator.maze,
+                                                generation)
+            self.renderer.run()
+            self.menu.init_menu(self.start_generation)
         except Exception as e:
-            print(f"There was an error generating the maze... : {e}")
+            print(f"Fatal error occurred: {e}")
             if hasattr(self, 'renderer'):
                 self.renderer.destroy()
 
 
-if __name__ == "__main__":
+def get_config_file() -> str:
     if len(sys.argv) != 2:
         print("Error: Invalid number of arguments!")
         print("Usage: python a_maze_ing.py <config_file.txt>")
@@ -53,8 +54,15 @@ if __name__ == "__main__":
         print("Usage: python a_maze_ing.py <config_file.txt>")
         sys.exit(1)
 
+    return config_file
+
+
+if __name__ == "__main__":
+
+    config_file = get_config_file()
+
     try:
-        maze = Maze(config_file)
+        Main(config_file)
     except Exception as e:
         print(f"{e}")
         sys.exit(1)

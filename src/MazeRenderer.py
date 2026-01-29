@@ -1,8 +1,9 @@
 from self_typing import MazeBoard
 from self_typing.maze import NORTH, SOUTH, EAST, WEST
+from src.Cell import Cell
 from mlx import Mlx
-import threading
-import queue
+import ctypes
+import time
 
 
 class MazeRenderer:
@@ -10,36 +11,48 @@ class MazeRenderer:
     def __init__(self, width: int, height: int):
         self.mlx: Mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
+
         if width > 1920 or height > 1080:
             width = 1920
             height = 1080
+
         self.win_ptr = self.mlx.mlx_new_window(self.mlx_ptr, width,
                                                height, "A_maze_ing")
+
         self.width = width
         self.height = height
+
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+
         self._setup_hooks()
+
         self.running = True
-        self.board = None
-        
-        # Estados que el loop leerá
-        self.wall_color = 0xFFFFFF  # Blanco por defecto
-        self.bg_color = 0x000000    # Negro por defecto
-        self.visited_color = 0x00FF00  # Verde por defecto
-        
-        # Cola para comandos thread-safe
-        self.command_queue = queue.Queue()
-        self.render_thread = None
-        
-        # Estado de animación
-        self.animation_generator = None
-        self.current_step_info = None
-        self.last_update = 0
-        self.animation_speed = 0.01
+        self.board: MazeBoard | None = None
+
+        self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, width, height)
+
+        addr_info = self.mlx.mlx_get_data_addr(self.img_ptr)
+
+        # addr_info es (buffer, bits_per_pixel, size_line, endian)
+        # El buffer ya es un objeto memory que podemos usar directamente
+        self.img_buffer = (
+            ctypes.c_ubyte * (width * height * 4)).from_buffer(addr_info[0])
+
+        # Estados de renderizado
+        self.wall_color = 0xFFFFFF
+        self.bg_color = 0x000000
+        self.visited_color = 0x000000
+
+        # Estado de generación
+        self.generation_generator = None
+        self.generation_complete = False
+        self.generation_speed = 0.01
+        self.last_generation_time = 0
 
     def _setup_hooks(self):
         """Configura los hooks de eventos de la ventana."""
-        self.mlx.mlx_hook(self.win_ptr, 17, 0, self.close_window, None)
+        self.mlx.mlx_hook(self.win_ptr, 17, 0, lambda _: self.destroy,
+                          None)
         self.mlx.mlx_hook(self.win_ptr, 2, 1, self.handle_keypress, None)
         self.mlx.mlx_loop_hook(self.mlx_ptr, self._loop_hook, None)
 
@@ -47,125 +60,66 @@ class MazeRenderer:
         """Se ejecuta en cada frame del loop."""
         if not self.running:
             return 0
-        
-        import time
-        
-        # 1. Procesar comandos de la cola
-        try:
-            while not self.command_queue.empty():
-                command = self.command_queue.get_nowait()
-                self._process_command(command)
-        except queue.Empty:
-            pass
-        
-        # 2. Actualizar animación si hay
-        if self.animation_generator:
-            current_time = time.time()
-            if current_time - self.last_update >= self.animation_speed:
-                self.last_update = current_time
-                try:
-                    self.current_step_info = next(self.animation_generator)
-                    print(self.current_step_info)
-                    self._draw_maze()  # Redibujar con colores actuales
-                except StopIteration:
-                    self.animation_generator = None
-                    self._draw_maze()
-        
-        return 0
 
-    def _process_command(self, command: dict):
-        """Procesa comandos del main thread."""
-        cmd_type = command.get('type')
-        
-        if cmd_type == 'render':
-            self.board = command.get('board')
-            self._draw_maze()
-        
-        elif cmd_type == 'update_step':
-            self.current_step_info = command.get('step_info')
-            self._draw_maze()
-        
-        elif cmd_type == 'set_animation':
-            self.animation_generator = command.get('generator')
+        # Procesar generación paso a paso
+        if self.generation_generator and not self.generation_complete:
             import time
-            self.last_update = time.time()
-        
-        elif cmd_type == 'set_color':
-            # Cambiar color según el tipo
-            color_type = command.get('color_type')
-            color_value = command.get('color_value')
-            
-            if color_type == 'wall':
-                self.wall_color = color_value
-            elif color_type == 'bg':
-                self.bg_color = color_value
-            elif color_type == 'visited':
-                self.visited_color = color_value
-            
-            # Redibujar con nuevos colores
-            self._draw_maze()
-        
-        elif cmd_type == 'clear':
-            self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+            current_time = time.time()
+
+            if current_time - self.last_generation_time >= \
+               self.generation_speed:
+                self.last_generation_time = current_time
+
+                try:
+                    step_info = next(self.generation_generator)
+                    modified_cells = step_info.get('modified_cells', [])
+
+                    if modified_cells:
+                        self._draw_maze()
+
+                except StopIteration:
+                    self.generation_complete = True
+                    self._draw_maze()  # Redibujar completo al final
+
+                    time.sleep(2)
+                    self.mlx.mlx_loop_exit(self.mlx_ptr)
+
+        return 0
 
     def handle_keypress(self, keycode: int, param):
         """Maneja eventos de teclado."""
-        if keycode == 65307:  # ESC key
-            self.close_window()
         return 0
 
     def close_window(self, param=None):
         """Cierra la ventana y sale del loop."""
         self.running = False
-        self.mlx.mlx_loop_end(self.mlx_ptr)
+        self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
 
-    # ===== MÉTODOS PARA LLAMAR DESDE MAIN THREAD =====
-    
+    def initialize_generation(self, board: MazeBoard, generator):
+        """Inicia la generación del laberinto."""
+        self.board = board
+        self.generation_generator = generator
+        self.generation_complete = False
+        self.last_generation_time = time.time()
+
     def set_wall_color(self, color: int):
-        """Cambia el color de las paredes (desde main thread)."""
-        self.command_queue.put({
-            'type': 'set_color',
-            'color_type': 'wall',
-            'color_value': color
-        })
+        """Cambia el color de las paredes."""
+        self.wall_color = color
+        if self.board:
+            self._draw_maze()
 
     def set_background_color(self, color: int):
-        """Cambia el color de fondo (desde main thread)."""
-        self.command_queue.put({
-            'type': 'set_color',
-            'color_type': 'bg',
-            'color_value': color
-        })
+        """Cambia el color de fondo."""
+        self.bg_color = color
+        if self.board:
+            self._draw_maze()
 
     def set_visited_color(self, color: int):
-        """Cambia el color de celdas visitadas (desde main thread)."""
-        self.command_queue.put({
-            'type': 'set_color',
-            'color_type': 'visited',
-            'color_value': color
-        })
-
-    def set_animation(self, generator):
-        """Establece un generador para animación."""
-        self.command_queue.put({
-            'type': 'set_animation',
-            'generator': generator
-        })
-
-    def render(self, board: MazeBoard):
-        """Envía comando de render."""
-        self.command_queue.put({
-            'type': 'render',
-            'board': board
-        })
-
-    def update_step(self, step_info: dict):
-        """Envía actualización de paso."""
-        self.command_queue.put({
-            'type': 'update_step',
-            'step_info': step_info
-        })
+        """Cambia el color de celdas visitadas."""
+        self.visited_color = color
+        if self.board:
+            self._draw_maze()
 
     # ===== MÉTODOS DE DIBUJO (ejecutan en renderer thread) =====
 
@@ -173,142 +127,163 @@ class MazeRenderer:
         """Dibuja el laberinto completo usando colores actuales."""
         if not self.board:
             return
-                
-        # Limpiar ventana con color de fondo
-        self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
-        
+
+        # Sincronizar imagen para escritura
+        self.mlx.mlx_sync(self.mlx_ptr, Mlx.SYNC_IMAGE_WRITABLE, self.img_ptr)
+
+        # Limpiar el buffer de imagen (llenar de negro)
+        for i in range(0, len(self.img_buffer), 4):
+            self.img_buffer[i:i+4] = (0xFF000000).to_bytes(4, 'little')
+
         # Calcular dimensiones de cada celda
-        # Obtener dimensiones del maze
         max_x = max(x for x, y in self.board.keys())
         max_y = max(y for x, y in self.board.keys())
-        
+
         cell_width = self.width // max_x
         cell_height = self.height // max_y
-        
+
         # Dibujar cada celda
+        cells_drawn = 0
         for coord, cell in self.board.items():
             self._draw_cell(cell, cell_width, cell_height)
-        
-        # Resaltar paso actual si hay animación
-        if self.current_step_info:
-            self._highlight_current_step(cell_width, cell_height)
+            cells_drawn += 1
 
-    def _draw_cell(self, cell, cell_width: int, cell_height: int):
-        """Dibuja una celda individual con los colores actuales."""
+        # Mostrar la imagen en la ventana
+        self.mlx.mlx_put_image_to_window(self.mlx_ptr,
+                                         self.win_ptr,
+                                         self.img_ptr, 0, 0)
+
+    def _put_pixel_to_image(self, x: int, y: int, color: int):
+        """Dibuja un píxel en el buffer de la imagen."""
+        if 0 <= x < self.width and 0 <= y < self.height:
+            offset = (y * self.width + x) * 4  # 4 bytes por píxel
+            self.img_buffer[offset:offset+4] = (0xFF000000 | color).to_bytes(4,
+                                                                             '\
+little')
+
+    def _draw_cells_incremental(self, cells: list):
+        """Dibuja solo las celdas especificadas sin limpiar toda la pantalla"""
+        if not self.board:
+            return
+
+        # Calcular dimensiones
+        max_x = max(x for x, y in self.board.keys())
+        max_y = max(y for x, y in self.board.keys())
+
+        cell_width = self.width // max_x
+        cell_height = self.height // max_y
+
+        # Dibujar solo las celdas modificadas
+        for cell in cells:
+            # Primero limpiar el área de la celda
+            x, y = cell.coord
+            px = (x - 1) * cell_width
+            py = (y - 1) * cell_height
+            self._fill_rect(px, py, cell_width, cell_height, self.bg_color)
+
+            # Luego dibujar la celda actualizada
+            self._draw_cell(cell, cell_width, cell_height)
+
+    def _draw_cell(self, cell: Cell, cell_width: int, cell_height: int):
+        """Dibuja una celda individual con los colores actuales"""
         x, y = cell.coord
-        
+
         # Convertir coordenadas del maze (1-indexed) a píxeles
         px = (x - 1) * cell_width
         py = (y - 1) * cell_height
-        
+
         # Dibujar fondo de la celda
         if cell.visited:
             # Celda visitada con color especial
-            self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.visited_color)
-        
-        # Dibujar paredes de la celda
-        wall_thickness = 2
-        
+            self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
+                            self.visited_color)
+
+        # Dibujar paredes de la celda (has_wall retorna int, no bool)
+        wall_thickness = 4
+
         if cell.has_wall(NORTH):
-            self._draw_line(px, py, px + cell_width, py, self.wall_color, wall_thickness)
-        
+            self._draw_line(px, py, px + cell_width,
+                            py,
+                            self.wall_color,
+                            wall_thickness)
+
         if cell.has_wall(SOUTH):
-            self._draw_line(px, py + cell_height, px + cell_width, py + cell_height, 
-                          self.wall_color, wall_thickness)
-        
+            self._draw_line(px, py + cell_height,
+                            px + cell_width, py + cell_height,
+                            self.wall_color,
+                            wall_thickness)
+
         if cell.has_wall(WEST):
-            self._draw_line(px, py, px, py + cell_height, self.wall_color, wall_thickness)
-        
+            self._draw_line(px, py, px, py + cell_height,
+                            self.wall_color,
+                            wall_thickness)
+
         if cell.has_wall(EAST):
-            self._draw_line(px + cell_width, py, px + cell_width, py + cell_height, 
-                          self.wall_color, wall_thickness)
+            self._draw_line(px + cell_width,
+                            py, px + cell_width,
+                            py + cell_height,
+                            self.wall_color,
+                            wall_thickness)
 
-    def _highlight_current_step(self, cell_width: int, cell_height: int):
-        """Resalta la celda del paso actual de la animación."""
-        if not self.current_step_info:
-            return
-        
-        current_coord = self.current_step_info.get('current')
-        if not current_coord:
-            return
-        
-        x, y = current_coord
-        px = (x - 1) * cell_width
-        py = (y - 1) * cell_height
-        
-        # Color según acción
-        action = self.current_step_info.get('action', '')
-        if action == 'visiting':
-            color = 0x0000FF  # Azul para visitando
-        elif action == 'breaking_wall':
-            color = 0xFF0000  # Rojo para rompiendo pared
-        elif action == 'backtracking':
-            color = 0xFFFF00  # Amarillo para backtracking
-        else:
-            color = 0xFF00FF  # Magenta por defecto
-        
-        # Resaltar con un rectángulo más pequeño en el centro
-        margin = cell_width // 4
-        self._fill_rect(px + margin, py + margin, 
-                       cell_width - 2*margin, cell_height - 2*margin, color)
-
-    def _draw_line(self, x1: int, y1: int, x2: int, y2: int, color: int, thickness: int = 1):
-        """Dibuja una línea con grosor."""
-        # Calcular puntos intermedios usando interpolación lineal
+    def _draw_line(self, x1: int, y1: int, x2: int, y2: int, color: int,
+                   thickness: int = 1):
+        """Dibuja una línea con grosor usando interpolación lineal."""
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
         steps = max(dx, dy)
-        
+
+        # Caso especial: un solo punto
         if steps == 0:
             for t in range(thickness):
-                self.mlx.mlx_pixel_put(self.mlx_ptr, self.win_ptr, int(x1), int(y1) + t, color)
+                if 0 <= x1 < self.width and 0 <= y1 + t < self.height:
+                    self._put_pixel_to_image(int(x1), int(y1) + t, color)
             return
-        
+
+        # Calcular incrementos
         x_inc = (x2 - x1) / steps
         y_inc = (y2 - y1) / steps
-        
+
+        # Dibujar la línea píxel a píxel
         for i in range(int(steps) + 1):
             x = x1 + x_inc * i
             y = y1 + y_inc * i
-            
-            # Dibujar con grosor
+
+            # Aplicar grosor
             for t in range(thickness):
-                if dx > dy:  # Línea más horizontal
-                    self.mlx.mlx_pixel_put(self.mlx_ptr, self.win_ptr, 
-                                          int(x), int(y) + t - thickness//2, color)
-                else:  # Línea más vertical
-                    self.mlx.mlx_pixel_put(self.mlx_ptr, self.win_ptr, 
-                                          int(x) + t - thickness//2, int(y), color)
+                px, py = int(x), int(y)
+
+                # Aplicar grosor perpendicular a la dirección de la línea
+                if dx > dy:  # Línea más horizontal - grosor vertical
+                    py = py + t - thickness // 2
+                else:  # Línea más vertical - grosor horizontal
+                    px = px + t - thickness // 2
+
+                # Verificar límites y dibujar
+                if 0 <= px < self.width and 0 <= py < self.height:
+                    self._put_pixel_to_image(px, py, color)
 
     def _fill_rect(self, x: int, y: int, width: int, height: int, color: int):
-        """Dibuja un rectángulo relleno."""
-        for i in range(int(height)):
-            for j in range(int(width)):
-                px = int(x + j)
-                py = int(y + i)
-                # Verificar límites de la ventana
+        """Dibuja un rectángulo relleno píxel a píxel."""
+        x_start = int(x)
+        y_start = int(y)
+        x_end = int(x + width)
+        y_end = int(y + height)
+
+        for py in range(y_start, y_end):
+            for px in range(x_start, x_end):
                 if 0 <= px < self.width and 0 <= py < self.height:
-                    self.mlx.mlx_pixel_put(self.mlx_ptr, self.win_ptr, px, py, color)
+                    self._put_pixel_to_image(px, py, color)
 
-    # ===== CONTROL DEL THREAD =====
+    # ===== CONTROL DEL LOOP =====
 
-    def start_loop(self):
-        """Inicia el loop de MLX en un thread separado."""
-        def run_mlx_loop():
-            self.mlx.mlx_loop(self.mlx_ptr)
-        
-        self.render_thread = threading.Thread(target=run_mlx_loop, daemon=True)
-        self.render_thread.start()
-
-
-    def wait_until_closed(self):
-        """Espera hasta que se cierre la ventana."""
-        if self.render_thread:
-            self.render_thread.join()
+    def run(self):
+        """Inicia el loop principal"""
+        self.mlx.mlx_loop(self.mlx_ptr)
 
     def destroy(self):
         """Limpia recursos al finalizar."""
         self.running = False
         if self.win_ptr:
+            self.mlx.mlx_loop_exit(self.mlx_ptr)
             self.mlx.mlx_destroy_window(self.mlx_ptr, self.win_ptr)
             self.win_ptr = None

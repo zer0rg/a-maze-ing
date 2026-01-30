@@ -66,7 +66,6 @@ class MazeGenerator:
                     'current': current_cell.coord,
                     'action': 'breaking_wall',
                     'modified_cells': [current_cell, next_cell],
-                    'message': f'Rompiendo pared {step_count}: {current_cell.coord} -> {next_cell.coord}'
                 }
             else:
                 # No hay vecinos no visitados, hacer backtrack
@@ -77,7 +76,6 @@ class MazeGenerator:
                         'current': current_cell.coord,
                         'action': 'backtracking',
                         'modified_cells': [current_cell],
-                        'message': f'Backtracking desde {current_cell.coord} a {stack[-1].coord}'
                     }
 
     def _add_extra_paths(self):

@@ -42,11 +42,10 @@ class MazeGenerator:
             current_cell = self.maze[current]
             
             # Obtener vecinos no visitados directamente desde la celda
-            unvisited_neighbors: list[tuple[int, Cell]] = [
-                (direction, neighbor)
-                for direction, neighbor in current_cell.neighbors.items()
-                if not neighbor.visited
-            ]
+            unvisited_neighbors: list[tuple[int, Cell]] = []
+            for direction, neighbor in current_cell.neighbors.items():
+                if not neighbor.visited:
+                    unvisited_neighbors.append((direction, neighbor))
             
             if unvisited_neighbors:
                 direction, next_cell = random.choice(unvisited_neighbors)

@@ -10,8 +10,11 @@ class Cell:
         self.walls: MazeWalls = NORTH | EAST | SOUTH | WEST
         self.visited: bool = False
         self.isFixed: bool = False
+        self.isStart: bool = False
+        self.isExit: bool = False
         self._neighbors: Optional[dict[int, 'Cell']] = None
         self._maze_ref: Optional['MazeBoard'] = None
+
 
     @property
     def neighbors(self) -> dict[int, 'Cell']:

@@ -84,6 +84,7 @@ class MazeGenerator:
                 # No hay vecinos no visitados, hacer backtrack
                 stack.pop()
                 if stack:
+                    
                     yield {
                         'current': current,
                         'action': 'backtracking',
@@ -101,6 +102,10 @@ class MazeGenerator:
         for y in range(1, self.height + 1):
             for x in range(1, self.width + 1):
                 maze[(x, y)] = Cell((x, y))
+                if (x, y) == self.entry:
+                    maze[(x, y)].isStart = True
+                if (x, y) == self.exit:
+                    maze[(x, y)].isExit = True
 
         for cell in maze.values():
             cell.set_maze_reference(maze)

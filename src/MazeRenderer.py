@@ -41,8 +41,9 @@ class MazeRenderer:
         # Estados de renderizado
         self.wall_color = 0xFFFFFF
         self.bg_color = 0x000000
-
         self.visited_color = 0x000000
+        self.start_color = 0x00FF00
+        self.end_color = 0xFE00000
 
         # Estado de generación
         self.generation_generator = None
@@ -86,11 +87,9 @@ class MazeRenderer:
         return 0
 
     def handle_keypress(self, keycode: int, param):
-        """Maneja eventos de teclado."""
         return 0
 
     def close_window(self, param=None):
-        """Cierra la ventana y sale del loop."""
         self.running = False
         self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
@@ -103,30 +102,29 @@ class MazeRenderer:
         self.last_generation_time = time.time()        
         self._draw_maze()
 
+    # SETEO DE COLORES
+
     def set_wall_color(self, color: int):
-        """Cambia el color de las paredes."""
         self.wall_color = color
         if self.board:
             self._draw_maze()
 
     def set_background_color(self, color: int):
-        """Cambia el color de fondo."""
         self.bg_color = color
         if self.board:
             self._draw_maze()
 
     def set_visited_color(self, color: int):
-        """Cambia el color de celdas visitadas."""
         self.visited_color = color
         if self.board:
             self._draw_maze()
         if self.board:
             self._draw_maze()
 
-    # ===== MÉTODOS DE DIBUJO (ejecutan en renderer thread) =====
+    # METODOS DE DIBUJO
 
     def _draw_maze(self):
-        """Dibuja el laberinto completo usando colores actuales."""
+        """Dibuja el laberinto completo"""
         if not self.board:
             return
 
@@ -146,10 +144,8 @@ class MazeRenderer:
         cell_height = self.height // max_y
 
         # Dibujar cada celda
-        cells_drawn = 0
         for coord, cell in self.board.items():
             self._draw_cell(cell, cell_width, cell_height)
-            cells_drawn += 1
 
         # Mostrar la imagen en la ventana
         self.mlx.mlx_put_image_to_window(self.mlx_ptr,
@@ -179,7 +175,6 @@ little')
         cell_width = self.width // max_x
         cell_height = self.height // max_y
 
-        # Dibujar solo las celdas modificadas
         for cell in cells:
             # Primero limpiar el área de la celda
             x, y = cell.coord
@@ -199,7 +194,7 @@ little')
         """Dibuja una celda individual con los colores actuales"""
         x, y = cell.coord
 
-        # Convertir coordenadas del maze (1-indexed) a píxeles
+        # Convertir coordenadas del maze (inician DESDE 1) a pixeles
         px = (x - 1) * cell_width
         py = (y - 1) * cell_height
 
@@ -208,8 +203,16 @@ little')
             # Celda visitada con color especial
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.visited_color)
+        
+        if cell.isStart == True:
+            self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
+                            self.start_color)
+            
+        if cell.isExit == True:
+            self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
+                            self.end_color)
 
-        # Dibujar paredes de la celda (has_wall retorna int, no bool)
+        # Dibujar paredes de la celda
         wall_thickness = 4
 
         if cell.has_wall(NORTH):

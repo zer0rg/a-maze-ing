@@ -20,7 +20,6 @@ class MazeGenerator:
 
     def generate_step_by_step(self):
         print("\nGenerating...")
-        
         # DFS Iterativo: elegir celda inicial aleatoria
         start_x: int = random.randint(1, self.width)
         start_y: int = random.randint(1, self.height)
@@ -35,8 +34,6 @@ class MazeGenerator:
         
         # Diccionario de direcciones opuestas
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
-        
-        step_count = 0
         
         while stack:
             current_cell = stack[-1]
@@ -59,9 +56,7 @@ class MazeGenerator:
                 
                 # Añadir next_cell al stack
                 stack.append(next_cell)
-                
-                step_count += 1
-                
+                                
                 yield {
                     'current': current_cell.coord,
                     'action': 'breaking_wall',

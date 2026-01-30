@@ -17,7 +17,6 @@ class MazeGenerator:
         print(f"[...] Creating {self.width}x{self.height} maze...")
         self.maze: MazeBoard = self._initialize_board()
         print(f"[OK] Board initialized with {len(self.maze)} cells")
-        self.visited: set = set()
 
     def generate_step_by_step(self):
         print("\nGenerating...")
@@ -32,7 +31,6 @@ class MazeGenerator:
         
         # Marcar la celda inicial como visitada
         self.maze[start_coord].visited = True
-        self.visited.add(start_coord)
         
         # Diccionario de direcciones opuestas
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
@@ -41,44 +39,35 @@ class MazeGenerator:
         
         while stack:
             current = stack[-1]
+            current_cell = self.maze[current]
             
-            # Obtener vecinos no visitados
-            unvisited_neighbors: list[tuple[int, Coordinate]] = []
-            
-            for direction in [NORTH, SOUTH, EAST, WEST]:
-                next_coord = (
-                    current[0] + MOVEMENTS[direction][0],
-                    current[1] + MOVEMENTS[direction][1]
-                )
-                nx, ny = next_coord
-                
-                # Verificar que esté dentro de los límites y no visitada
-                if (1 <= nx <= self.width and 1 <= ny <= self.height 
-                    and next_coord not in self.visited):
-                    unvisited_neighbors.append((direction, next_coord))
+            # Obtener vecinos no visitados directamente desde la celda
+            unvisited_neighbors: list[tuple[int, Cell]] = [
+                (direction, neighbor)
+                for direction, neighbor in current_cell.neighbors.items()
+                if not neighbor.visited
+            ]
             
             if unvisited_neighbors:
-                # Elegir un vecino al azar
-                direction, next_coord = random.choice(unvisited_neighbors)
+                direction, next_cell = random.choice(unvisited_neighbors)
                 
-                # Romper las paredes entre current y next_coord
-                self.maze[current].remove_wall(direction)
-                self.maze[next_coord].remove_wall(opposites[direction])
+                # Romper las paredes entre current y next_cell
+                current_cell.remove_wall(direction)
+                next_cell.remove_wall(opposites[direction])
                 
-                # Marcar next_coord como visitada
-                self.maze[next_coord].visited = True
-                self.visited.add(next_coord)
+                # Marcar next_cell como visitada
+                next_cell.visited = True
                 
-                # Añadir next_coord al stack
-                stack.append(next_coord)
+                # Añadir next_cell al stack
+                stack.append(next_cell.coord)
                 
                 step_count += 1
                 
                 yield {
                     'current': current,
                     'action': 'breaking_wall',
-                    'modified_cells': [self.maze[current], self.maze[next_coord]],
-                    'message': f'Rompiendo pared {step_count}: {current} -> {next_coord}'
+                    'modified_cells': [current_cell, next_cell],
+                    'message': f'Rompiendo pared {step_count}: {current} -> {next_cell.coord}'
                 }
             else:
                 # No hay vecinos no visitados, hacer backtrack

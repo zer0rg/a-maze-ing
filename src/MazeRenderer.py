@@ -79,8 +79,6 @@ class MazeRenderer:
 
     def handle_keypress(self, keycode: int, param):
         if keycode == 113:
-            print("Aborting generation...")
-            self._draw_maze()
             self.mlx.mlx_loop_exit(self.mlx_ptr)
             
 

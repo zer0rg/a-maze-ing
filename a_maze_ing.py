@@ -3,6 +3,7 @@ from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer, Output
 from src.solver.BFSSolver import BFSSolver
 import sys
 import os
+import time
 
 
 class Main:
@@ -11,7 +12,6 @@ class Main:
         # Parseo de archivo configuracion en objeto config
         self.config: MazeConfig = MazeConfig(config_file)
 
-        # Calcular tamaño de ventana adaptativo
         MIN_CELL_SIZE = 10
         MAX_WINDOW_WIDTH = 1920
         MAX_WINDOW_HEIGHT = 900
@@ -42,15 +42,24 @@ class Main:
             try:
                 option = int(selection)
                 if option == 1:
-                    self.start_generation()
-                elif option == 2:
                     # TODO
-                    # self.solver.solve()
+                    print("Comming soon!")
+                    time.sleep(2)
                     self.main_menu()
+                elif option == 2:
+                    self.start_generation()
                 elif option == 3:
-                    # Cambiar color (automáticamente redibuja y sincroniza)
-                    self.change_background_color()
+                    # TODO
+                    print("Comming soon!")
+                    time.sleep(2)
+                    self.main_menu()
                 elif option == 4:
+                    self.change_background_color()
+                elif option == 5:
+                    print("Comming soon!")
+                    time.sleep(2)
+                    self.main_menu()
+                elif option == 6:
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("See ya!")
                     sys.exit(0)

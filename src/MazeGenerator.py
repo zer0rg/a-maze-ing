@@ -26,11 +26,12 @@ class MazeGenerator:
         start_y: int = random.randint(1, self.height)
         start_coord: Coordinate = (start_x, start_y)
         
-        # Stack para el DFS iterativo
-        stack: list[Coordinate] = [start_coord]
+        # Stack para el DFS iterativo usando Cell directamente
+        start_cell: Cell = self.maze[start_coord]
+        stack: list[Cell] = [start_cell]
         
         # Marcar la celda inicial como visitada
-        self.maze[start_coord].visited = True
+        start_cell.visited = True
         
         # Diccionario de direcciones opuestas
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
@@ -38,8 +39,7 @@ class MazeGenerator:
         step_count = 0
         
         while stack:
-            current = stack[-1]
-            current_cell = self.maze[current]
+            current_cell = stack[-1]
             
             # Obtener vecinos no visitados directamente desde la celda
             unvisited_neighbors: list[tuple[int, Cell]] = []
@@ -50,7 +50,7 @@ class MazeGenerator:
             if unvisited_neighbors:
                 direction, next_cell = random.choice(unvisited_neighbors)
                 
-                # Romper las paredes entre current y next_cell
+                # Romper las paredes entre current_cell y next_cell
                 current_cell.remove_wall(direction)
                 next_cell.remove_wall(opposites[direction])
                 
@@ -58,15 +58,15 @@ class MazeGenerator:
                 next_cell.visited = True
                 
                 # Añadir next_cell al stack
-                stack.append(next_cell.coord)
+                stack.append(next_cell)
                 
                 step_count += 1
                 
                 yield {
-                    'current': current,
+                    'current': current_cell.coord,
                     'action': 'breaking_wall',
                     'modified_cells': [current_cell, next_cell],
-                    'message': f'Rompiendo pared {step_count}: {current} -> {next_cell.coord}'
+                    'message': f'Rompiendo pared {step_count}: {current_cell.coord} -> {next_cell.coord}'
                 }
             else:
                 # No hay vecinos no visitados, hacer backtrack
@@ -74,10 +74,10 @@ class MazeGenerator:
                 if stack:
                     
                     yield {
-                        'current': current,
+                        'current': current_cell.coord,
                         'action': 'backtracking',
-                        'modified_cells': [self.maze[current]],
-                        'message': f'Backtracking desde {current} a {stack[-1]}'
+                        'modified_cells': [current_cell],
+                        'message': f'Backtracking desde {current_cell.coord} a {stack[-1].coord}'
                     }
 
     def _add_extra_paths(self):

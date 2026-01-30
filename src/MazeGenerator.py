@@ -21,44 +21,75 @@ class MazeGenerator:
 
     def generate_step_by_step(self):
         print("\nGenerating...")
-        # Simula 50 roturas aleatorias para probar el stream con yield
-        # (ALGORITMO FINAL TODO)
-        for i in range(400):
-            # Elegir una celda aleatoria
-            x: int = random.randint(1, self.width)
-            y: int = random.randint(1, self.height)
-            current = (x, y)
-
-            if current not in self.maze:
-                continue
-
-            # Marcar como visitada
-            self.maze[current].visited = True
-
-            # Elegir una dirección aleatoria
-            directions = [NORTH, SOUTH, EAST, WEST]
-            random.shuffle(directions)
-            opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
-
-            for direction in directions:
-                next_coord = (current[0] + MOVEMENTS[direction][0],
-                              current[1] + MOVEMENTS[direction][1])
-
+        
+        # DFS Iterativo: elegir celda inicial aleatoria
+        start_x: int = random.randint(1, self.width)
+        start_y: int = random.randint(1, self.height)
+        start_coord: Coordinate = (start_x, start_y)
+        
+        # Stack para el DFS iterativo
+        stack: list[Coordinate] = [start_coord]
+        
+        # Marcar la celda inicial como visitada
+        self.maze[start_coord].visited = True
+        self.visited.add(start_coord)
+        
+        # Diccionario de direcciones opuestas
+        opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
+        
+        step_count = 0
+        
+        while stack:
+            current = stack[-1]
+            
+            # Obtener vecinos no visitados
+            unvisited_neighbors: list[tuple[int, Coordinate]] = []
+            
+            for direction in [NORTH, SOUTH, EAST, WEST]:
+                next_coord = (
+                    current[0] + MOVEMENTS[direction][0],
+                    current[1] + MOVEMENTS[direction][1]
+                )
                 nx, ny = next_coord
-                if 1 <= nx <= self.width and 1 <= ny <= self.height:
-                    # Romper la pared
-                    self.maze[current].remove_wall(direction)
-                    self.maze[next_coord].remove_wall(opposites[direction])
-                    self.maze[next_coord].visited = True
-
+                
+                # Verificar que esté dentro de los límites y no visitada
+                if (1 <= nx <= self.width and 1 <= ny <= self.height 
+                    and next_coord not in self.visited):
+                    unvisited_neighbors.append((direction, next_coord))
+            
+            if unvisited_neighbors:
+                # Elegir un vecino al azar
+                direction, next_coord = random.choice(unvisited_neighbors)
+                
+                # Romper las paredes entre current y next_coord
+                self.maze[current].remove_wall(direction)
+                self.maze[next_coord].remove_wall(opposites[direction])
+                
+                # Marcar next_coord como visitada
+                self.maze[next_coord].visited = True
+                self.visited.add(next_coord)
+                
+                # Añadir next_coord al stack
+                stack.append(next_coord)
+                
+                step_count += 1
+                
+                yield {
+                    'current': current,
+                    'action': 'breaking_wall',
+                    'modified_cells': [self.maze[current], self.maze[next_coord]],
+                    'message': f'Rompiendo pared {step_count}: {current} -> {next_coord}'
+                }
+            else:
+                # No hay vecinos no visitados, hacer backtrack
+                stack.pop()
+                if stack:
                     yield {
                         'current': current,
-                        'action': 'breaking_wall',
-                        'modified_cells': [self.maze[current], self.maze[next_coord]],
-                        'message': f'Rompiendo pared {i+1}/50: {current} -> \
-{next_coord}'
+                        'action': 'backtracking',
+                        'modified_cells': [self.maze[current]],
+                        'message': f'Backtracking desde {current} a {stack[-1]}'
                     }
-                    break
 
     def _add_extra_paths(self):
         # TODO

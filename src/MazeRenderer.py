@@ -159,7 +159,7 @@ class MazeRenderer:
     def _put_pixel_to_image(self, x: int, y: int, color: int):
         """Dibuja un píxel en el buffer de la imagen."""
         if 0 <= x < self.width and 0 <= y < self.height:
-            offset = (y * self.width + x) * 4  # 4 bytes por píxel
+            offset: int = (y * self.width + x) * 4  # 4 bytes por píxel
             self.img_buffer[offset:offset+4] = (0xFF000000 | color).to_bytes(4,
                                                                              '\
 little')

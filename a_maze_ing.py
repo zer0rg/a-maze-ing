@@ -29,12 +29,12 @@ class Main:
 
         # Instanciar clases principales
         self.generator: MazeGenerator = MazeGenerator(self.config)
+        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height, self.generator)
         self.solver: BFSSolver = BFSSolver(
                                             self.generator.maze,
                                             self.config.entry,
                                             self.config.exit)
         self.menu: InteractiveMenu = InteractiveMenu(self.config)
-        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height)
         self.start_generation()
 
     def exec_result(self, selection: int):
@@ -84,9 +84,7 @@ class Main:
     def start_generation(self) -> None:
         try:
             self.generator.maze = self.generator._initialize_board()
-            generation = self.generator.generate_step_by_step()
-            self.renderer.initialize_generation(self.generator.maze,
-                                                generation)
+            self.renderer.initialize_generation()
             self.renderer.run()
             OutputFileHandler().save_file(self.config.output_file,
                                           self.generator.maze)

@@ -1,6 +1,7 @@
 from self_typing import MazeBoard
 from self_typing.maze import NORTH, SOUTH, EAST, WEST
 from src.Cell import Cell
+from src.MazeGenerator import MazeGenerator
 from mlx import Mlx
 import ctypes
 import time
@@ -8,7 +9,7 @@ import time
 
 class MazeRenderer:
 
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int, generator: MazeGenerator):
         self.mlx: Mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
         self.screen_size = self.mlx.mlx_get_screen_size(self.mlx_ptr)
@@ -22,7 +23,9 @@ class MazeRenderer:
         self._setup_hooks()
 
         self.running = True
-        self.board: MazeBoard | None = None
+        
+        self.generator: MazeGenerator = generator
+        self.board: MazeBoard | None = generator.maze
 
         self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, width, height)
         addr_info = self.mlx.mlx_get_data_addr(self.img_ptr)
@@ -72,7 +75,6 @@ class MazeRenderer:
 
                 except StopIteration:
                     self.generation_complete = True
-                    self._draw_maze()  # Redibujar completo al final
                     self.mlx.mlx_loop_exit(self.mlx_ptr)
 
         return 0
@@ -87,12 +89,10 @@ class MazeRenderer:
         self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
 
-    def initialize_generation(self, board: MazeBoard, generator):
+    def initialize_generation(self):
         """Inicia la generación del laberinto."""
-        self.board = board
-        self.generation_generator = generator
-        self.generation_complete = False
-        self.last_generation_time = time.time()        
+        self.last_generation_time = time.time()
+        self.generation_generator = self.generator.generate_step_by_step()
         self._draw_maze()
 
     # SETEO DE COLORES

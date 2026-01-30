@@ -20,6 +20,7 @@ class MazeGenerator:
 
     def generate_step_by_step(self):
         print("\nGenerating...")
+        print("Press Q in the maze window to abort generation")
         # DFS Iterativo: elegir celda inicial aleatoria
         start_x: int = random.randint(1, self.width)
         start_y: int = random.randint(1, self.height)

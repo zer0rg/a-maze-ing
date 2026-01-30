@@ -11,30 +11,21 @@ class MazeRenderer:
     def __init__(self, width: int, height: int):
         self.mlx: Mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
-
-        if width > 1920 or height > 1080:
-            width = 1920
-            height = 1080
+        self.screen_size = self.mlx.mlx_get_screen_size(self.mlx_ptr)
+        self.width = width
+        self.height = height
 
         self.win_ptr = self.mlx.mlx_new_window(self.mlx_ptr, width,
                                                height, "A_maze_ing")
 
-        self.width = width
-        self.height = height
-
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
-
         self._setup_hooks()
 
         self.running = True
         self.board: MazeBoard | None = None
 
         self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, width, height)
-
         addr_info = self.mlx.mlx_get_data_addr(self.img_ptr)
-
-        # addr_info es (buffer, bits_per_pixel, size_line, endian)
-        # El buffer ya es un objeto memory que podemos usar directamente
         self.img_buffer = (
             ctypes.c_ubyte * (width * height * 4)).from_buffer(addr_info[0])
 
@@ -87,7 +78,11 @@ class MazeRenderer:
         return 0
 
     def handle_keypress(self, keycode: int, param):
-        return 0
+        if keycode == 113:
+            print("Aborting generation...")
+            self._draw_maze()
+            self.mlx.mlx_loop_exit(self.mlx_ptr)
+            
 
     def close_window(self, param=None):
         self.running = False
@@ -213,7 +208,7 @@ little')
                             self.end_color)
 
         # Dibujar paredes de la celda
-        wall_thickness = 4
+        wall_thickness = 2
 
         if cell.has_wall(NORTH):
             self._draw_line(px, py, px + cell_width,
@@ -291,14 +286,18 @@ little')
     # ===== CONTROL DEL LOOP =====
 
     def sync(self):
+        """Renderizado sincrono del buffer actual"""
         self.mlx.mlx_do_sync(self.mlx_ptr)
 
     def run(self):
+        """Inicio de loop de la MLX"""
         self.mlx.mlx_loop(self.mlx_ptr)
 
     def destroy(self):
+        """Libera MLX"""
         self.running = False
         if self.win_ptr:
             self.mlx.mlx_loop_exit(self.mlx_ptr)
+            self.mlx.mlx_destroy_image(self.mlx_ptr, self.img_ptr)
             self.mlx.mlx_destroy_window(self.mlx_ptr, self.win_ptr)
             self.win_ptr = None

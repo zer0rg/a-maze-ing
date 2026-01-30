@@ -11,19 +11,30 @@ class Main:
         # Parseo de archivo configuracion en objeto config
         self.config: MazeConfig = MazeConfig(config_file)
 
-        # Calcular tamaño de ventana para celdas de ~20 píxeles
-        window_width = min(self.config.width * 20, 1920)
-        window_height = min(self.config.height * 20, 1080)
+        # Calcular tamaño de ventana adaptativo
+        MIN_CELL_SIZE = 10
+        MAX_WINDOW_WIDTH = 1920
+        MAX_WINDOW_HEIGHT = 900
+        
+        # Calcular el tamaño de celda que permita que todo quepa en pantalla
+        cell_size_x = MAX_WINDOW_WIDTH // self.config.width
+        cell_size_y = MAX_WINDOW_HEIGHT // self.config.height
+        
+        # Usar el menor tamaño para mantener proporciones
+        cell_size = max(MIN_CELL_SIZE, min(cell_size_x, cell_size_y, 20))
+        
+        # Calcular dimensiones finales de la ventana
+        window_width = min(self.config.width * cell_size, MAX_WINDOW_WIDTH)
+        window_height = min(self.config.height * cell_size, MAX_WINDOW_HEIGHT)
 
         # Instanciar clases principales
-        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height)
         self.generator: MazeGenerator = MazeGenerator(self.config)
         self.solver: BFSSolver = BFSSolver(
                                             self.generator.maze,
                                             self.config.entry,
                                             self.config.exit)
         self.menu: InteractiveMenu = InteractiveMenu(self.config)
-        # Generacion y renderizado del primer laberinto y inicio del menu
+        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height)
         self.start_generation()
 
     def exec_result(self, selection: int):

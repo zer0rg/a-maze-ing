@@ -84,10 +84,11 @@ class Main:
     def start_generation(self) -> None:
         try:
             self.generator.maze = self.generator._initialize_board()
-            self.renderer.initialize_generation()
+            self.renderer.initialize_rendered_generation()
             self.renderer.run()
-            OutputFileHandler().save_file(self.config.output_file,
-                                          self.generator.maze)
+            self.output = OutputFileHandler().save_file("maze.txt",
+                                                        self.generator.maze,
+                                                        self.config)
             self.main_menu()
         except Exception as e:
             print(f"Fatal error occurred: {e}")

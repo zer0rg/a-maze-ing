@@ -45,11 +45,17 @@ class MazeRenderer:
         self.generation_speed = 0.01
         self.last_generation_time = 0
 
+    def initialize_rendered_generation(self):
+        """Inicia la generación del laberinto."""
+        self.last_generation_time = time.time()
+        self.generation_generator = self.generator.generate_step_by_step()
+        self._draw_maze()
+
     def _setup_hooks(self):
         """Configura los hooks de eventos de la ventana."""
         self.mlx.mlx_hook(self.win_ptr, 17, 0, lambda _: self.destroy,
                           None)
-        self.mlx.mlx_hook(self.win_ptr, 2, 1, self.handle_keypress, None)
+        self.mlx.mlx_hook(self.win_ptr, 2, 1, self._handle_keypress, None)
         self.mlx.mlx_loop_hook(self.mlx_ptr, self._loop_hook, None)
 
     def _loop_hook(self, param):
@@ -79,21 +85,15 @@ class MazeRenderer:
 
         return 0
 
-    def handle_keypress(self, keycode: int, param):
+    def _handle_keypress(self, keycode: int, param):
         if keycode == 113:
             self.mlx.mlx_loop_exit(self.mlx_ptr)
             
 
-    def close_window(self, param=None):
+    def _close_window(self, param=None):
         self.running = False
         self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
-
-    def initialize_generation(self):
-        """Inicia la generación del laberinto."""
-        self.last_generation_time = time.time()
-        self.generation_generator = self.generator.generate_step_by_step()
-        self._draw_maze()
 
     # SETEO DE COLORES
 
@@ -293,7 +293,7 @@ little')
 
     def destroy(self):
         """Libera MLX"""
-        self.running = False
+        self._close_window()
         if self.win_ptr:
             self.mlx.mlx_loop_exit(self.mlx_ptr)
             self.mlx.mlx_destroy_image(self.mlx_ptr, self.img_ptr)

@@ -19,6 +19,11 @@ class MazeGenerator:
         print(f"[OK] Board initialized with {len(self.maze)} cells")
 
     def generate_step_by_step(self):
+        """
+        Genera el laberinto usando algoritmo DFS
+        Devuelve un stream en cada pared que el algoritmo rompe
+        con las celdas modificadas
+        """
         print("\nGenerating...")
         print("Press Q in the maze window to abort generation")
         # DFS Iterativo: elegir celda inicial aleatoria
@@ -79,6 +84,7 @@ class MazeGenerator:
         pass
 
     def _initialize_board(self) -> MazeBoard:
+        """Inicializa el laberinto con todas las paredes cerradas"""
         maze: MazeBoard = {}
 
         for y in range(1, self.height + 1):
@@ -93,3 +99,8 @@ class MazeGenerator:
             cell.set_maze_reference(maze)
 
         return maze
+    
+    def define_fixed_points(self):
+        """Funcion que define a traves del calculo del punto central del laberinto
+            los fixed points necesarios para formar el logo de 42 en el medio"""
+        pass

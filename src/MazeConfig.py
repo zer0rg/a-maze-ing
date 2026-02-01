@@ -1,13 +1,17 @@
-from self_typing import Coordinate
+from maze_types.maze import Coordinate
 import sys
 
 
 class MazeConfig:
 
     def __init__(self, config_file):
+        print("Reading config file...")
+
         try:
             self.parse_file(config_file)
             self.check_config()
+            print("[OK] Config File readed succesfully")
+
         except Exception as e:
             print(f"Config File Error: {e}")
             sys.exit(1)
@@ -55,12 +59,7 @@ class MazeConfig:
                 x, y = value.split(",")
                 self.exit: Coordinate = (int(x), int(y))
             elif key == "PERFECT":
-                if value == "True":
-                    self.perfect: bool = True
-                elif value == "False":
-                    self.perfect: bool = False
-                else:
-                    raise Exception("Perfect value must be 'True' or 'False'")
+                self.perfect: bool = value == "True"
             elif key == "OUTPUT_FILE":
                 self.output_file: str = value
             else:

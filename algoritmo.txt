@@ -1,0 +1,6 @@
+1. Elegir una celda aleatoria
+    - Marcarla como vistada
+    2 Visitar vecinos en direccion al azar
+        - La primera que encontremas como no visitada la marcamos como visitada
+        - Rompemos las paredes de ambas (direccion y direccion opuesta)
+        .

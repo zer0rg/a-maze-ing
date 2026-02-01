@@ -22,10 +22,11 @@ class BidirectionalBFSSolver(MazeSolver):
         while queue_start and queue_goal:
             for visited in visited_start:
                 if visited in visited_goal:
-                    return self.reconstruct_path(parent_start, parent_goal,
-                                                 visited)
+                    self.reconstructed_path = self.reconstruct_path(parent_start, parent_goal,
+                                                                    visited)
+                    return self.reconstructed_path
             node_start = queue_start.popleft()
-            for neighbor in MazeUtilities.get_neighbors(node_start, 
+            for neighbor in MazeUtilities.get_neighbors(node_start,
                                                         self.board):
                 if neighbor not in visited_start:
                     queue_start.append(neighbor)
@@ -54,3 +55,4 @@ class BidirectionalBFSSolver(MazeSolver):
             cur = path_goal[cur]
 
         return start_half + goal_half
+

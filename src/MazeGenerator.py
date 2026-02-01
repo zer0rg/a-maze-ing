@@ -30,39 +30,39 @@ class MazeGenerator:
         start_x: int = random.randint(1, self.width)
         start_y: int = random.randint(1, self.height)
         start_coord: Coordinate = (start_x, start_y)
-        
+
         # Stack para el DFS iterativo usando Cell directamente
         start_cell: Cell = self.maze[start_coord]
         stack: list[Cell] = [start_cell]
-        
+
         # Marcar la celda inicial como visitada
         start_cell.visited = True
-        
+
         # Diccionario de direcciones opuestas
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
-        
+
         while stack:
             current_cell = stack[-1]
-            
+
             # Obtener vecinos no visitados directamente desde la celda
             unvisited_neighbors: list[tuple[int, Cell]] = []
             for direction, neighbor in current_cell.neighbors.items():
                 if not neighbor.visited:
                     unvisited_neighbors.append((direction, neighbor))
-            
+
             if unvisited_neighbors:
                 direction, next_cell = random.choice(unvisited_neighbors)
-                
+
                 # Romper las paredes entre current_cell y next_cell
                 current_cell.remove_wall(direction)
                 next_cell.remove_wall(opposites[direction])
-                
+
                 # Marcar next_cell como visitada
                 next_cell.visited = True
-                
+
                 # Añadir next_cell al stack
                 stack.append(next_cell)
-                                
+
                 yield {
                     'current': current_cell.coord,
                     'action': 'breaking_wall',
@@ -72,7 +72,7 @@ class MazeGenerator:
                 # No hay vecinos no visitados, hacer backtrack
                 stack.pop()
                 if stack:
-                    
+
                     yield {
                         'current': current_cell.coord,
                         'action': 'backtracking',
@@ -99,7 +99,7 @@ class MazeGenerator:
             cell.set_maze_reference(maze)
 
         return maze
-    
+
     def define_fixed_points(self):
         """Funcion que define a traves del calculo del punto central del laberinto
             los fixed points necesarios para formar el logo de 42 en el medio"""

@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer, OutputFileHandler
-from src.solver.BFSSolver import BFSSolver
 from src.solver.BiderectionalBFSSolver import BidirectionalBFSSolver
 from src import OutputFileHandler
 from self_typing import MazeBoard

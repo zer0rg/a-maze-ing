@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer, OutputFileHandler
-from src.solver.BFSSolver import BFSSolver
+from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
+from src import OutputFileHandler
 import sys
 import os
 import time
@@ -29,11 +29,8 @@ class Main:
 
         # Instanciar clases principales
         self.generator: MazeGenerator = MazeGenerator(self.config)
-        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height, self.generator)
-        self.solver: BFSSolver = BFSSolver(
-                                            self.generator.maze,
-                                            self.config.entry,
-                                            self.config.exit)
+        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height,
+                                                   self.generator)
         self.menu: InteractiveMenu = InteractiveMenu(self.config)
         self.start_generation()
 
@@ -72,8 +69,8 @@ class Main:
         select = self.menu.ask_color_code()
         if select is None:
             self.change_background_color()
-        self.renderer.set_background_color(select)
-        self.renderer.set_visited_color(select)
+        self.renderer.set_background_color(select)  # type: ignore
+        self.renderer.set_visited_color(select)  # type: ignore
         self.renderer.sync()
         self.main_menu()
 

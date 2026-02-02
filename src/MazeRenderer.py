@@ -87,8 +87,7 @@ class MazeRenderer:
 
     def _handle_keypress(self, keycode: int, param):
         if keycode == 113:
-            self.mlx.mlx_loop_exit(self.mlx_ptr)
-            
+            self.mlx.mlx_loop_exit(self.mlx_ptr)        
 
     def _close_window(self, param=None):
         self.running = False

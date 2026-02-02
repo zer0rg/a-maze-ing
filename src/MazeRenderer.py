@@ -23,7 +23,7 @@ class MazeRenderer:
         self._setup_hooks()
 
         self.running = True
-        
+
         self.generator: MazeGenerator = generator
         self.board: MazeBoard | None = generator.maze
 
@@ -87,7 +87,7 @@ class MazeRenderer:
 
     def _handle_keypress(self, keycode: int, param):
         if keycode == 113:
-            self.mlx.mlx_loop_exit(self.mlx_ptr)        
+            self.mlx.mlx_loop_exit(self.mlx_ptr)
 
     def _close_window(self, param=None):
         self.running = False
@@ -195,12 +195,12 @@ little')
             # Celda visitada con color especial
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.visited_color)
-        
-        if cell.isStart == True:
+
+        if cell.isStart is True:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.start_color)
-            
-        if cell.isExit == True:
+
+        if cell.isExit is True:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.end_color)
 
@@ -261,7 +261,7 @@ little')
                 # Aplicar grosor perpendicular a la direccion de la línea
                 if dx > dy:
                     py = py + t - thickness // 2
-                else: 
+                else:
                     px = px + t - thickness // 2
 
                 # Verificar límites y dibujar

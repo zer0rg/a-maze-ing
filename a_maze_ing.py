@@ -1,6 +1,7 @@
 #!/usr/bin/python3
+from email import generator
 from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer, OutputFileHandler
-from src.solver.BFSSolver import BFSSolver
+from src.solver.BidirectionalBFSSolver import BidirectionalBFSSolver
 import sys
 import os
 import time
@@ -15,14 +16,14 @@ class Main:
         MIN_CELL_SIZE = 10
         MAX_WINDOW_WIDTH = 1920
         MAX_WINDOW_HEIGHT = 900
-        
+
         # Calcular el tamaño de celda que permita que todo quepa en pantalla
         cell_size_x = MAX_WINDOW_WIDTH // self.config.width
         cell_size_y = MAX_WINDOW_HEIGHT // self.config.height
-        
+
         # Usar el menor tamaño para mantener proporciones
         cell_size = max(MIN_CELL_SIZE, min(cell_size_x, cell_size_y, 20))
-        
+
         # Calcular dimensiones finales de la ventana
         window_width = min(self.config.width * cell_size, MAX_WINDOW_WIDTH)
         window_height = min(self.config.height * cell_size, MAX_WINDOW_HEIGHT)
@@ -30,10 +31,6 @@ class Main:
         # Instanciar clases principales
         self.generator: MazeGenerator = MazeGenerator(self.config)
         self.renderer: MazeRenderer = MazeRenderer(window_width, window_height, self.generator)
-        self.solver: BFSSolver = BFSSolver(
-                                            self.generator.maze,
-                                            self.config.entry,
-                                            self.config.exit)
         self.menu: InteractiveMenu = InteractiveMenu(self.config)
         self.start_generation()
 
@@ -49,8 +46,14 @@ class Main:
                 elif option == 2:
                     self.start_generation()
                 elif option == 3:
-                    # TODO
-                    print("Comming soon!")
+                    self.solver: BidirectionalBFSSolver = BidirectionalBFSSolver(
+                                                        self.generator.maze,
+                                                        self.config.entry,
+                                                        self.config.exit)
+                    path = self.solver.solve()
+                    with open("solved_path.txt", "w") as f:
+                        for cell in path:
+                            f.write(f"{cell.coord}\n")
                     time.sleep(2)
                     self.main_menu()
                 elif option == 4:

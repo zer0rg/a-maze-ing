@@ -57,3 +57,15 @@ class Cell:
             )
             if neighbor_coord in self._maze_ref:
                 self._neighbors[direction] = self._maze_ref[neighbor_coord]
+
+
+    def __eq__(self, value):
+        if not isinstance(value, Cell):
+            return False
+        return self.coord == value.coord
+
+    def __hash__(self):
+        return hash(self.coord)
+
+    def __str__(self):
+        return f"Cell({self.coord}, walls={self.walls}, visited={self.visited})"

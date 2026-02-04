@@ -3,7 +3,6 @@ from typing import Dict, Set
 from self_typing.maze import Coordinate, MazeBoard
 from src.Cell import Cell
 from src.solver.MazeSolver import MazeSolver
-from src.MazeUtilities import MazeUtilities
 
 
 class BidirectionalBFSSolver(MazeSolver):
@@ -24,7 +23,8 @@ class BidirectionalBFSSolver(MazeSolver):
         while queue_start and queue_goal:
             for visited in visited_start:
                 if visited in visited_goal:
-                    self.reconstructed_path = self.reconstruct_path(parent_start, parent_goal,
+                    self.reconstructed_path = self.reconstruct_path(parent_start,
+                                                                    parent_goal,
                                                                     visited)
                     return self.reconstructed_path
             node_start = queue_start.popleft()
@@ -41,7 +41,10 @@ class BidirectionalBFSSolver(MazeSolver):
                     parent_goal[neighbor] = node_goal
         return None
 
-    def reconstruct_path(self, path_start: Dict[Cell, Cell], path_goal: Dict[Cell, Cell], meeting_node: Cell):
+    def reconstruct_path(self,
+                         path_start: Dict[Cell, Cell],
+                         path_goal: Dict[Cell, Cell],
+                         meeting_node: Cell):
         start_half = []
         cur = meeting_node
         while cur is not None:
@@ -56,4 +59,3 @@ class BidirectionalBFSSolver(MazeSolver):
             cur = path_goal[cur]
 
         return start_half + goal_half
-

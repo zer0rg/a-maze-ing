@@ -294,7 +294,6 @@ little')
         """Libera MLX"""
         self._close_window()
         if self.win_ptr:
-            self.mlx.mlx_loop_exit(self.mlx_ptr)
             self.mlx.mlx_destroy_image(self.mlx_ptr, self.img_ptr)
             self.mlx.mlx_destroy_window(self.mlx_ptr, self.win_ptr)
             self.win_ptr = None

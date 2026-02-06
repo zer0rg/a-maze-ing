@@ -39,24 +39,15 @@ class Main:
             try:
                 option = int(selection)
                 if option == 1:
-                    # TODO
-                    print("Comming soon!")
-                    time.sleep(2)
-                    self.main_menu()
-                elif option == 2:
                     self.start_generation()
-                elif option == 3:
+                elif option == 2:
                     # TODO
                     print("Comming soon!")
                     time.sleep(2)
                     self.main_menu()
-                elif option == 4:
+                elif option == 3:
                     self.change_background_color()
-                elif option == 5:
-                    print("Comming soon!")
-                    time.sleep(2)
-                    self.main_menu()
-                elif option == 6:
+                elif option == 4:
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("See ya!")
                     sys.exit(0)

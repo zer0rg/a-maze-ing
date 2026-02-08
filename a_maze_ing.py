@@ -81,7 +81,8 @@ class Main:
             self.renderer.run()
             self.output = OutputFileHandler().save_file("maze.txt",
                                                         self.generator.maze,
-                                                        self.config)
+                                                        self.config,
+                                                        self.solver)
             self.generated = True
         except Exception as e:
             self.generated = False

@@ -1,4 +1,6 @@
-from self_typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
+from collections import deque
+import time
+from self_typing.maze import MOVEMENTS, MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from src.MazeConfig import MazeConfig
 from src.Cell import Cell
 import random
@@ -127,10 +129,61 @@ class MazeGenerator:
                         'action': 'backtracking',
                         'modified_cells': [current_cell],
                     }
+        if not self.perfect:
+            print("\nAdding extra paths...")
+            extra_path = self._add_extra_paths()
+            for cell in extra_path:
+                yield {
+                    'current': cell.coord,
+                    'action': 'adding_extra_path',
+                    'modified_cells': [cell],
+                }
+        print(f"[OK] Maze generated successfully")
 
-    def _add_extra_paths(self):
-        # TODO
-        pass
+    def bfs_distance(self, start: Cell, end: Cell, max_dist: int = 10) -> int:
+        """Distancia BFS entre start y end respetando paredes"""
+        queue = deque([(start, 0)])
+        visited = set()
+        while queue:
+            current, dist = queue.popleft()
+            if current.coord == end.coord:
+                return dist
+            if current.coord in visited or dist > max_dist:
+                continue
+            visited.add(current.coord)
+            for direction, neighbor in current.neighbors.items():
+                if not current.has_wall(direction):
+                    queue.append((neighbor, dist + 1))
+        return float('inf')  # No hay camino
+
+    def _add_extra_paths(self, min_dist: int = 6, max_paths: int = 10) -> list[Cell]:
+        """Agrega caminos extra evitando ciclos triviales"""
+        candidates = []
+
+        # Paso 1: recolectar todas las paredes candidatas
+        for cell in self.maze.values():
+            for direction, neighbor in cell.neighbors.items():
+                if not cell.is_fixed and not neighbor.is_fixed and cell.has_wall(direction):
+                    candidates.append((cell, neighbor, direction))
+
+        random.shuffle(candidates)
+
+        extra_path_cells = []
+        added = 0
+
+        # Paso 2: romper paredes si distancia es suficientemente larga
+        for cell, neighbor, direction in candidates:
+            if added >= max_paths:
+                break
+            dist = self.bfs_distance(cell, neighbor, max_dist=5)
+            if dist >= min_dist:
+                cell.remove_wall(direction)
+                OPPOSITE = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
+                neighbor.remove_wall(OPPOSITE[direction])
+                extra_path_cells.extend([cell, neighbor])
+                added += 1
+
+        return extra_path_cells
 
     def initialize_board(self) -> None:
         """Inicializa el laberinto con todas las paredes cerradas"""

@@ -33,6 +33,7 @@ class MazeRenderer:
             ctypes.c_ubyte * (width * height * 4)).from_buffer(addr_info[0])
 
         # Estados de renderizado
+        self.wall_thickness = 2
         self.wall_color = 0xFFFFFF
         self.bg_color = 0x000000
         self.visited_color = 0x000000
@@ -45,10 +46,31 @@ class MazeRenderer:
         self.generation_speed = 0.01
         self.last_generation_time = 0
 
+        # Estado de solución
+        self.solving_generator = None
+        self.solving_complete = False
+        self.solving_speed = 0.001  # Más rápido que la generación
+        self.last_solving_time = 0
+
+        # Colores para el solver
+        self.exploring_start_color = 0x0000FF  # Azul
+        self.exploring_goal_color = 0xFFFF00   # Amarillo
+        self.visiting_start_color = 0x4444FF   # Azul claro
+        self.visiting_goal_color = 0xFFFF44    # Amarillo claro
+        self.solution_path_color = 0xFF00FF    # Magenta
+
     def initialize_rendered_generation(self):
         """Inicia la generación del laberinto."""
+        self.generation_complete =  False
         self.last_generation_time = time.time()
         self.generation_generator = self.generator.generate_step_by_step()
+        self._draw_maze()
+
+    def initialize_rendered_solving(self, solver):
+        """Inicia la solución del laberinto."""
+        self.solving_complete = False
+        self.last_solving_time = time.time()
+        self.solving_generator = solver.solve_step_by_step()
         self._draw_maze()
 
     def _setup_hooks(self):
@@ -83,11 +105,32 @@ class MazeRenderer:
                     self.generation_complete = True
                     self.mlx.mlx_loop_exit(self.mlx_ptr)
 
+        # Procesar solución paso a paso
+        if self.solving_generator and not self.solving_complete:
+            import time
+            current_time = time.time()
+
+            if current_time - self.last_solving_time >= self.solving_speed:
+                self.last_solving_time = current_time
+
+                try:
+                    step_info = next(self.solving_generator)
+                    action = step_info.get('action', '')
+                    modified_cells = step_info.get('modified_cells', [])
+
+                    if modified_cells:
+                        self._draw_cells_solving(modified_cells, action)
+
+                except StopIteration:
+                    self.solving_complete = True
+                    self.mlx.mlx_loop_exit(self.mlx_ptr)
+
         return 0
 
     def _handle_keypress(self, keycode: int, param):
         if keycode == 113:
             self.mlx.mlx_loop_exit(self.mlx_ptr)
+            
 
     def _close_window(self, param=None):
         self.running = False
@@ -128,7 +171,7 @@ class MazeRenderer:
         for i in range(0, len(self.img_buffer), 4):
             self.img_buffer[i:i+4] = bg_with_alpha.to_bytes(4, 'little')
 
-        # Calcular dimensiones de cada celda
+        # Calculate dimensions of a Cell
         max_x = max(x for x, y in self.board.keys())
         max_y = max(y for x, y in self.board.keys())
 
@@ -182,6 +225,90 @@ little')
                                          self.win_ptr,
                                          self.img_ptr, 0, 0)
 
+    def _draw_cells_solving(self, cells: list, action: str):
+        """Dibuja las celdas durante el proceso de solución"""
+        if not self.board:
+            return
+
+        # Sincronizar imagen para escritura
+        self.mlx.mlx_sync(self.mlx_ptr, Mlx.SYNC_IMAGE_WRITABLE, self.img_ptr)
+
+        # Calcular dimensiones
+        max_x = max(x for x, y in self.board.keys())
+        max_y = max(y for x, y in self.board.keys())
+
+        cell_width = self.width // max_x
+        cell_height = self.height // max_y
+
+        # Determinar el color según la acción
+        color = self.bg_color
+        if action in ['init_start', 'exploring_start']:
+            color = self.exploring_start_color
+        elif action in ['init_goal', 'exploring_goal']:
+            color = self.exploring_goal_color
+        elif action == 'visiting_start':
+            color = self.visiting_start_color
+        elif action == 'visiting_goal':
+            color = self.visiting_goal_color
+        elif action == 'solution_found':
+            color = self.solution_path_color
+        elif action in ['backtracking_start', 'backtracking_goal', 'clear_visited']:
+            color = self.bg_color  # Volver al fondo negro
+
+        for cell in cells:
+            x, y = cell.coord
+            px = (x - 1) * cell_width
+            py = (y - 1) * cell_height
+
+            # Si es solution_found, no limpiar toda la celda, solo pintar el interior
+            # para mantener los espacios sin paredes como estaban
+            if action == 'solution_found':
+                # Solo pintar el interior (donde no hay paredes)
+                if not cell.is_start and not cell.is_exit and not cell.is_fixed:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, color)
+                # Mantener los colores especiales de start/exit/fixed
+                if cell.is_start:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                elif cell.is_exit:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.end_color)
+                elif cell.is_fixed:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+            else:
+                # Para todas las demás acciones, limpiar y redibujar completamente
+                # Limpiar toda el área de la celda
+                self._fill_rect(px, py, cell_width, cell_height, self.bg_color)
+
+                # Pintar el interior de la celda con el color apropiado
+                if color != self.bg_color:
+                    # Dibujar el fondo coloreado para celdas no especiales
+                    if not cell.is_start and not cell.is_exit and not cell.is_fixed:
+                        self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, color)
+
+                # Mantener los colores especiales de start/exit/fixed siempre
+                if cell.is_start:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                elif cell.is_exit:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.end_color)
+                elif cell.is_fixed:
+                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+
+                # Dibujar las paredes siempre
+                if cell.has_wall(NORTH):
+                    self._draw_line(px, py, px + cell_width, py, self.wall_color, self.wall_thickness)
+                if cell.has_wall(SOUTH):
+                    self._draw_line(px, py + cell_height, px + cell_width, py + cell_height, self.wall_color,
+                                    self.wall_thickness)
+                if cell.has_wall(WEST):
+                    self._draw_line(px, py, px, py + cell_height, self.wall_color, self.wall_thickness)
+                if cell.has_wall(EAST):
+                    self._draw_line(px + cell_width, py, px + cell_width, py + cell_height, self.wall_color,
+                                    self.wall_thickness)
+
+        # Mostrar la imagen en la ventana
+        self.mlx.mlx_put_image_to_window(self.mlx_ptr,
+                                         self.win_ptr,
+                                         self.img_ptr, 0, 0)
+
     def _draw_cell(self, cell: Cell, cell_width: int, cell_height: int):
         """Dibuja una celda individual con los colores actuales"""
         x, y = cell.coord
@@ -196,40 +323,42 @@ little')
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.visited_color)
 
-        if cell.isStart is True:
+        if cell.is_start:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.start_color)
-
-        if cell.isExit is True:
+            
+        if cell.is_exit:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.end_color)
 
+        if cell.is_fixed:
+            self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
+                            self.start_color)
         # Dibujar paredes de la celda
-        wall_thickness = 2
 
         if cell.has_wall(NORTH):
             self._draw_line(px, py, px + cell_width,
                             py,
                             self.wall_color,
-                            wall_thickness)
+                            self.wall_thickness)
 
         if cell.has_wall(SOUTH):
             self._draw_line(px, py + cell_height,
                             px + cell_width, py + cell_height,
                             self.wall_color,
-                            wall_thickness)
+                            self.wall_thickness)
 
         if cell.has_wall(WEST):
             self._draw_line(px, py, px, py + cell_height,
                             self.wall_color,
-                            wall_thickness)
+                            self.wall_thickness)
 
         if cell.has_wall(EAST):
             self._draw_line(px + cell_width,
                             py, px + cell_width,
                             py + cell_height,
                             self.wall_color,
-                            wall_thickness)
+                            self.wall_thickness)
 
     def _draw_line(self, x1: int, y1: int, x2: int, y2: int, color: int,
                    thickness: int = 1):
@@ -261,7 +390,7 @@ little')
                 # Aplicar grosor perpendicular a la direccion de la línea
                 if dx > dy:
                     py = py + t - thickness // 2
-                else:
+                else: 
                     px = px + t - thickness // 2
 
                 # Verificar límites y dibujar
@@ -294,6 +423,7 @@ little')
         """Libera MLX"""
         self._close_window()
         if self.win_ptr:
+            self.mlx.mlx_loop_exit(self.mlx_ptr)
             self.mlx.mlx_destroy_image(self.mlx_ptr, self.img_ptr)
             self.mlx.mlx_destroy_window(self.mlx_ptr, self.win_ptr)
             self.win_ptr = None

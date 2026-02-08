@@ -9,9 +9,9 @@ class Cell:
         self.coord: Coordinate = coord
         self.walls: MazeWalls = NORTH | EAST | SOUTH | WEST
         self.visited: bool = False
-        self.isFixed: bool = False
-        self.isStart: bool = False
-        self.isExit: bool = False
+        self.is_fixed: bool = False
+        self.is_start: bool = False
+        self.is_exit: bool = False
         self._neighbors: Optional[dict[int, 'Cell']] = None
         self._maze_ref: Optional['MazeBoard'] = None
 
@@ -27,15 +27,19 @@ class Cell:
         self._calculate_neighbors()
 
     def add_wall(self, direction: int) -> None:
+        """Adds a wall in a direction"""
         self.walls = self.walls | direction
 
     def has_wall(self, direction: int) -> int:
+        """Checks if there is a wall in a direction"""
         return (self.walls & direction)
 
     def remove_wall(self, direction: int) -> None:
+        """Remove a wall in a direction"""
         self.walls = self.walls & ~direction
 
     def get_accessible_neighbors(self) -> dict[int, 'Cell']:
+        """Returns a dict with the accesible neighbors of a Cell"""
         x_1, y_1 = self.coord
         neighbors: dict[int, 'Cell'] = {}
         for direction, move in MOVEMENTS.items():
@@ -57,3 +61,15 @@ class Cell:
             )
             if neighbor_coord in self._maze_ref:
                 self._neighbors[direction] = self._maze_ref[neighbor_coord]
+
+
+    def __eq__(self, value):
+        if not isinstance(value, Cell):
+            return False
+        return self.coord == value.coord
+
+    def __hash__(self):
+        return hash(self.coord)
+
+    def __str__(self):
+        return f"Cell({self.coord}, walls={self.walls}, visited={self.visited})"

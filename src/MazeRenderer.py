@@ -1,5 +1,8 @@
+from typing import Generator
+
 from self_typing import MazeBoard
 from self_typing.maze import NORTH, SOUTH, EAST, WEST
+from src.MazeConfig import MazeConfig
 from src.Cell import Cell
 from src.MazeGenerator import MazeGenerator
 from mlx import Mlx
@@ -9,15 +12,15 @@ import time
 
 class MazeRenderer:
 
-    def __init__(self, width: int, height: int, generator: MazeGenerator):
+    def __init__(self, config: MazeConfig, generator: MazeGenerator):
         self.mlx: Mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
         self.screen_size = self.mlx.mlx_get_screen_size(self.mlx_ptr)
-        self.width = width
-        self.height = height
+        self.config = config
+        self.width , self.height = self.get_window_size()
 
-        self.win_ptr = self.mlx.mlx_new_window(self.mlx_ptr, width,
-                                               height, "A_maze_ing")
+        self.win_ptr = self.mlx.mlx_new_window(self.mlx_ptr, self.width,
+                                               self.height, "A_maze_ing")
 
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
         self._setup_hooks()
@@ -27,10 +30,10 @@ class MazeRenderer:
         self.generator: MazeGenerator = generator
         self.board: MazeBoard | None = generator.maze
 
-        self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, width, height)
+        self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, self.width, self.height)
         addr_info = self.mlx.mlx_get_data_addr(self.img_ptr)
         self.img_buffer = (
-            ctypes.c_ubyte * (width * height * 4)).from_buffer(addr_info[0])
+            ctypes.c_ubyte * (self.width * self.height * 4)).from_buffer(addr_info[0])
 
         # Estados de renderizado
         self.wall_thickness = 2
@@ -49,7 +52,7 @@ class MazeRenderer:
         # Estado de solución
         self.solving_generator = None
         self.solving_complete = False
-        self.solving_speed = 0.001  # Más rápido que la generación
+        self.solving_speed = 0.001
         self.last_solving_time = 0
 
         # Colores para el solver
@@ -58,20 +61,22 @@ class MazeRenderer:
         self.visiting_start_color = 0x4444FF   # Azul claro
         self.visiting_goal_color = 0xFFFF44    # Amarillo claro
         self.solution_path_color = 0xFF00FF    # Magenta
+        self.draw_maze()
+        self.sync()
 
     def initialize_rendered_generation(self):
         """Inicia la generación del laberinto."""
         self.generation_complete =  False
         self.last_generation_time = time.time()
         self.generation_generator = self.generator.generate_step_by_step()
-        self._draw_maze()
+        self.draw_maze()
 
-    def initialize_rendered_solving(self, solver):
+    def initialize_rendered_solving(self, solver: Generator):
         """Inicia la solución del laberinto."""
         self.solving_complete = False
         self.last_solving_time = time.time()
-        self.solving_generator = solver.solve_step_by_step()
-        self._draw_maze()
+        self.solving_generator = solver
+        self.draw_maze()
 
     def _setup_hooks(self):
         """Configura los hooks de eventos de la ventana."""
@@ -80,10 +85,46 @@ class MazeRenderer:
         self.mlx.mlx_hook(self.win_ptr, 2, 1, self._handle_keypress, None)
         self.mlx.mlx_loop_hook(self.mlx_ptr, self._loop_hook, None)
 
+    def draw_solution(self, solution: list[Cell]):
+        """Dibuja la solución completa sin animación."""
+        if not self.board:
+            return
+        # Sincronizar imagen para escritura
+        self.mlx.mlx_sync(self.mlx_ptr, Mlx.SYNC_IMAGE_WRITABLE, self.img_ptr)
+
+        # Calcular dimensiones
+        max_x = max(x for x, y in self.board.keys())
+        max_y = max(y for x, y in self.board.keys())
+
+        cell_width = self.width // max_x
+        cell_height = self.height // max_y
+
+        for cell in solution:
+            x, y = cell.coord
+            px = (x - 1) * cell_width
+            py = (y - 1) * cell_height
+
+            if cell.is_start:
+                self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+            elif cell.is_exit:
+                self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.end_color)
+            else:
+                self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
+                                self.solution_path_color)
+
+        # Mostrar la imagen en la ventana
+        self.mlx.mlx_put_image_to_window(self.mlx_ptr,
+                                         self.win_ptr,
+                                         self.img_ptr, 0, 0)
+
     def _loop_hook(self, param):
         """Se ejecuta en cada frame del loop."""
         if not self.running:
             return 0
+
+        # Si no hay ni generación ni solving activos, terminar el loop
+        if not self.generation_generator and not self.solving_generator:
+            self._end_loop()
 
         # Procesar generación paso a paso
         if self.generation_generator and not self.generation_complete:
@@ -103,7 +144,7 @@ class MazeRenderer:
 
                 except StopIteration:
                     self.generation_complete = True
-                    self.mlx.mlx_loop_exit(self.mlx_ptr)
+                    self._end_loop()
 
         # Procesar solución paso a paso
         if self.solving_generator and not self.solving_complete:
@@ -130,7 +171,10 @@ class MazeRenderer:
     def _handle_keypress(self, keycode: int, param):
         if keycode == 113:
             self.mlx.mlx_loop_exit(self.mlx_ptr)
-            
+            self.generator.initialize_board()
+            self.draw_maze()
+            self.sync()
+            self.generation_complete = False
 
     def _close_window(self, param=None):
         self.running = False
@@ -142,23 +186,23 @@ class MazeRenderer:
     def set_wall_color(self, color: int):
         self.wall_color = color
         if self.board:
-            self._draw_maze()
+            self.draw_maze()
 
     def set_background_color(self, color: int):
         self.bg_color = color
         if self.board:
-            self._draw_maze()
+            self.draw_maze()
 
     def set_visited_color(self, color: int):
         self.visited_color = color
         if self.board:
-            self._draw_maze()
+            self.draw_maze()
         if self.board:
-            self._draw_maze()
+            self.draw_maze()
 
     # METODOS DE DIBUJO
 
-    def _draw_maze(self):
+    def draw_maze(self):
         """Dibuja el laberinto completo"""
         if not self.board:
             return
@@ -317,25 +361,18 @@ little')
         px = (x - 1) * cell_width
         py = (y - 1) * cell_height
 
-        # Dibujar fondo de la celda
-        if cell.visited:
-            # Celda visitada con color especial
-            self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
-                            self.visited_color)
-
+        # Dibujar fondo de la celda de color si son entrada y salida
         if cell.is_start:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.start_color)
-            
         if cell.is_exit:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.end_color)
-
+        # Si forma parte del logo central de 42
         if cell.is_fixed:
             self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
                             self.start_color)
         # Dibujar paredes de la celda
-
         if cell.has_wall(NORTH):
             self._draw_line(px, py, px + cell_width,
                             py,
@@ -409,15 +446,35 @@ little')
                 if 0 <= px < self.width and 0 <= py < self.height:
                     self._put_pixel_to_image(px, py, color)
 
+    def get_window_size(self):
+        # Calcular el tamaño de celda que permita que todo quepa en pantalla
+        cell_size_x = 1920 // self.config.width
+        cell_size_y = 1080 // self.config.height
+
+        # Usar el menor tamaño para mantener proporciones
+        cell_size = max(10, min(cell_size_x, cell_size_y, 20))
+
+        # Calcular dimensiones finales de la ventana
+        window_width = min(self.config.width * cell_size, 1920)
+        window_height = min(self.config.height * cell_size, 1080)
+
+        return window_width, window_height
+
     # ===== CONTROL DEL LOOP =====
 
     def sync(self):
         """Renderizado sincrono del buffer actual"""
         self.mlx.mlx_do_sync(self.mlx_ptr)
 
-    def run(self):
+    def run(self, static = False):
         """Inicio de loop de la MLX"""
         self.mlx.mlx_loop(self.mlx_ptr)
+        if static:
+            self.mlx.mlx_loop_exit(self.mlx_ptr)
+
+    def _end_loop(self):
+        """Finaliza el loop de la MLX"""
+        self.mlx.mlx_loop_exit(self.mlx_ptr)
 
     def destroy(self):
         """Libera MLX"""

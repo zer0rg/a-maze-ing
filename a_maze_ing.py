@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+from self_typing.maze import Coordinate
+from src.InteractiveMenu import ExecOptions
 from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
 from src import OutputFileHandler
 from src.solver.BidirectionalBFSSolver import BidirectionalBFSSolver
@@ -10,55 +12,58 @@ class Main:
 
     def __init__(self, config_file):
         # Parseo de archivo configuracion en objeto config
-        self.output = None
         self.config: MazeConfig = MazeConfig(config_file)
-
-        MIN_CELL_SIZE = 10
-        MAX_WINDOW_WIDTH = 1920
-        MAX_WINDOW_HEIGHT = 900
-
-        # Calcular el tamaño de celda que permita que todo quepa en pantalla
-        cell_size_x = MAX_WINDOW_WIDTH // self.config.width
-        cell_size_y = MAX_WINDOW_HEIGHT // self.config.height
-
-        # Usar el menor tamaño para mantener proporciones
-        cell_size = max(MIN_CELL_SIZE, min(cell_size_x, cell_size_y, 20))
-
-        # Calcular dimensiones finales de la ventana
-        window_width = min(self.config.width * cell_size, MAX_WINDOW_WIDTH)
-        window_height = min(self.config.height * cell_size, MAX_WINDOW_HEIGHT)
-
-        # Instanciar clases principales
         self.generator: MazeGenerator = MazeGenerator(self.config)
-        self.renderer: MazeRenderer = MazeRenderer(window_width, window_height,
+        self.renderer: MazeRenderer = MazeRenderer(self.config,
                                                    self.generator)
         self.menu: InteractiveMenu = InteractiveMenu(self.config)
-        self.solver = BidirectionalBFSSolver(
+        self.solver: BidirectionalBFSSolver = BidirectionalBFSSolver(
             self.generator.maze,
             self.config.entry,
             self.config.exit)
-        self.generated = False
+        self.generated: bool = False
         self.main_menu("Welcome to A-Maze-Ing!", self.generated)
-    def exec_result(self, selection: int):
-        if selection:
+
+    def exec_result(self, selection: ExecOptions):
+        if selection and isinstance(selection, ExecOptions):
             try:
-                option = int(selection)
-                if option == 1:
-                    self.start_generation()
-                    self.main_menu("Maze generated successfully!", self.generated)
-                elif option == 2:
-                    self.start_solving()
-                    self.main_menu("Solution path saved to solved_path.txt", self.generated)
-                elif option == 3:
+                if selection is ExecOptions.GEN_MAZE_WITH_RENDER:
+                    self.menu.print_header()
+                    self.start_generation(ExecOptions.GEN_MAZE_WITH_RENDER)
+                elif selection is ExecOptions.GEN_MAZE_NO_RENDER:
+                    self.menu.print_header()
+                    self.start_generation(ExecOptions.GEN_MAZE_NO_RENDER)
+                elif selection is ExecOptions.SHOW_SOLUTION_RENDER:
+                    if self.generated:
+                        self.menu.print_header()
+                        self.start_solving(ExecOptions.SHOW_SOLUTION_RENDER)
+                    else:
+                        self.main_menu("Error: Maze must be generated first",
+                                       self.generated)
+                elif selection is ExecOptions.SHOW_SOLUTION_NO_RENDER:
+                    if self.generated:
+                        self.menu.print_header()
+                        self.start_solving(ExecOptions.SHOW_SOLUTION_NO_RENDER)
+                    else:
+                        self.main_menu("Error: Maze must be generated first",
+                                       self.generated)
+                elif selection is ExecOptions.CHANGE_COLOR:
                     self.change_background_color()
-                elif option == 4:
+                elif selection is ExecOptions.EXIT:
                     os.system('cls' if os.name == 'nt' else 'clear')
-                    print("See ya!")
+                    print("Exiting program...")
+                    if hasattr(self, 'renderer'):
+                        self.renderer.destroy()
                     sys.exit(0)
                 else:
-                    self.main_menu("Error: Invalid option selected", self.generated)
+                    self.main_menu("Error: Invalid option selected",
+                                   self.generated)
             except ValueError:
-                self.main_menu("Error: Only integers are admitted", self.generated)
+                self.main_menu("Error: Only integers are admitted",
+                               self.generated)
+            except Exception as error:
+                self.main_menu(f"Unexpected error occurred: \
+{error.__str__()}\n Report it pls! <3", self.generated)
 
     def change_background_color(self) -> None:
         select = self.menu.ask_color_code()
@@ -67,66 +72,87 @@ class Main:
         self.renderer.set_background_color(select)  # type: ignore
         self.renderer.set_visited_color(select)  # type: ignore
         self.renderer.sync()
-        self.main_menu("Background color changed successfully!", self.generated)
+        self.main_menu("Background color changed successfully!",
+                       self.generated)
 
     def main_menu(self, status: str = "", generated: bool = False):
-        result: int = self.menu.init_menu(status, generated)
+        result: ExecOptions = self.menu.init_menu(status, generated)
         self.exec_result(result)
 
-    def start_generation(self) -> None:
+    def start_generation(self, generation_type: ExecOptions) -> None:
+        state = ""
         try:
             self.generated = False
             self.generator.initialize_board()
-            self.renderer.initialize_rendered_generation()
-            self.renderer.run()
-            self.output = OutputFileHandler().save_file("maze.txt",
+            if generation_type is ExecOptions.GEN_MAZE_WITH_RENDER:
+                self.renderer.generation_complete = False
+                self.renderer.initialize_rendered_generation()
+                self.renderer.run()
+                state = "Maze generated successfully with animation!"
+            if generation_type is ExecOptions.GEN_MAZE_NO_RENDER:
+                self.renderer.generation_complete = False
+                self.generator.generate()
+                self.renderer.draw_maze()
+                self.renderer.sync()
+                self.renderer.generation_complete = True
+            if self.renderer.generation_complete:
+                OutputFileHandler().save_file("maze.txt",
                                                         self.generator.maze,
                                                         self.config)
-            self.generated = True
+                self.generated = True
+                state = f"Maze generated successfully!"
+            else:
+                self.generated = False
+                state = "Maze generation was not completed!"
+            self.main_menu(state,
+                           self.generated)
         except Exception as e:
             self.generated = False
             print(f"Fatal error occurred: {e}")
             if hasattr(self, 'renderer'):
                 self.renderer.destroy()
 
-    def start_solving(self) -> None:
+    def start_solving(self, solving_option: ExecOptions) -> None:
         try:
-            print("Solving maze...")
-            self.renderer.initialize_rendered_solving(self.solver)
-            self.renderer.run()
+            if solving_option is ExecOptions.SHOW_SOLUTION_RENDER:
+                # Resolver con animación paso a paso
+                print("Solving maze with animation...")
+                self.renderer.initialize_rendered_solving(self.solver.solve_step_by_step())
+                self.renderer.run()
 
-            # Guardar el path una vez completado
-            if self.solver.reconstructed_path:
-                with open("solved_path.txt", "w") as f:
-                    for cell in self.solver.reconstructed_path:
-                        f.write(f"{cell.coord}\n")
+                # Guardar el path una vez completado
+                if self.solver.reconstructed_path:
+                    with open("solved_path.txt", "w") as f:
+                        for cell in self.solver.reconstructed_path:
+                            f.write(f"{cell.coord}\n")
+
+            elif solving_option is ExecOptions.SHOW_SOLUTION_NO_RENDER:
+                # Resolver sin animación y mostrar resultado final
+                print("Solving maze without animation...")
+                self.renderer.solving_generator = None
+                solution = self.solver.solve()
+
+                if solution:
+                    self.renderer.draw_solution(solution)
+                    self.renderer.sync()
+
+                    # Guardar solución
+                    with open("solved_path.txt", "w") as f:
+                        for cell in solution:
+                            f.write(f"{cell.coord}\n")
+                else:
+                    print("No solution found!")
+
+            self.main_menu("Solving completed!", self.generated)
+
         except Exception as e:
             print(f"Fatal error occurred during solving: {e}")
             if hasattr(self, 'renderer'):
                 self.renderer.destroy()
 
-
-def get_config_file() -> str:
-    if len(sys.argv) != 2:
-        print("Error: Invalid number of arguments!")
-        print("Usage: python a_maze_ing.py <config_file.txt>")
-        sys.exit(1)
-
-    config_file_str = sys.argv[1]
-
-    if not config_file_str.endswith('.txt'):
-        print("Error: Configuration file must be a .txt file!")
-        print("Usage: python a_maze_ing.py <config_file.txt>")
-        sys.exit(1)
-
-    return config_file_str
-
-
 if __name__ == "__main__":
-    config_file = get_config_file()
-
     try:
-        Main(config_file)
+        Main(MazeConfig.get_config_file())
     except Exception as e:
         print(f"{e}")
         sys.exit(1)

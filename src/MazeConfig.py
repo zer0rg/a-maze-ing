@@ -1,4 +1,4 @@
-from maze_types.maze import Coordinate
+from self_typing.maze import Coordinate
 import sys
 
 
@@ -6,6 +6,13 @@ class MazeConfig:
 
     def __init__(self, config_file):
         print("Reading config file...")
+
+        self.width: int = 0
+        self.height: int = 0
+        self.entry: Coordinate = (0, 0)
+        self.exit: Coordinate = (0, 0)
+        self.perfect: bool = False
+        self.output_file: str = ""
 
         try:
             self.parse_file(config_file)
@@ -38,6 +45,10 @@ class MazeConfig:
         if not hasattr(self, 'entry') or not isinstance(self.entry, tuple):
             raise Exception("Value ENTRY is needed and must be a valid \
                             coordinate pair!")
+        if self.entry[0] < 1 or self.entry[0] > self.width or self.entry[1] < 1 or self.entry[1] > self.height:
+            raise Exception("Value ENTRY must be within the maze dimensions!")
+        if self.exit[0] < 1 or self.exit[0] > self.width or self.exit[1] < 1 or self.exit[1] > self.height:
+            raise Exception("Value EXIT must be within the maze dimensions!")
         if not hasattr(self, 'exit') or not isinstance(self.exit, tuple):
             raise Exception("Value EXIT is needed and must be a valid \
                             coordinate pair!")
@@ -66,3 +77,19 @@ class MazeConfig:
                 raise ValueError(f"Unknown configuration key: {key}")
         except Exception as e:
             raise Exception(f"Error processing key '{key}': {e}")
+
+    @staticmethod
+    def get_config_file() -> str:
+        if len(sys.argv) != 2:
+            print("Error: Invalid number of arguments!")
+            print("Usage: python a_maze_ing.py <config_file.txt>")
+            sys.exit(1)
+
+        config_file_str = sys.argv[1]
+
+        if not config_file_str.endswith('.txt'):
+            print("Error: Configuration file must be a .txt file!")
+            print("Usage: python a_maze_ing.py <config_file.txt>")
+            sys.exit(1)
+
+        return config_file_str

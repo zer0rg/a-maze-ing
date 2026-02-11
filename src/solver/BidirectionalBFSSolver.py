@@ -9,6 +9,7 @@ class BidirectionalBFSSolver(MazeSolver):
 
     def __init__(self, board: MazeBoard, entry: Coordinate, exit: Coordinate):
         super().__init__(board, entry, exit)
+        self.reconstructed_path = None
 
     def solve(self):
         """
@@ -154,8 +155,8 @@ class BidirectionalBFSSolver(MazeSolver):
             'modified_cells': [],
         }
 
-    def reconstruct_path(self,
-                         path_start: Dict[Cell, Cell],
+    @staticmethod
+    def reconstruct_path(path_start: Dict[Cell, Cell],
                          path_goal: Dict[Cell, Cell],
                          meeting_node: Cell):
         start_half = []

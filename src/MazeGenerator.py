@@ -14,16 +14,14 @@ class MazeGenerator:
         self.exit: Coordinate = config.exit
         self.output_file: str = config.output_file
         self.maze: MazeBoard = {}
-        print(f"[...] Creating {self.width}x{self.height} maze...")
         self.initialize_board()
-        print(f"[OK] Board initialized with {len(self.maze)} cells")
 
-    def generate(self):
+    def generate(self) -> None:
         """
         Genera el laberinto completo usando algoritmo DFS iterativo.
         Modifica directamente self.maze sin emitir eventos.
         """
-        print("\nGenerating maze...")
+        print("\nGenerating...")
         # DFS Iterativo: elegir celda inicial aleatoria
         start_x: int = random.randint(1, self.width)
         start_y: int = random.randint(1, self.height)
@@ -64,7 +62,6 @@ class MazeGenerator:
                 # No hay vecinos no visitados, hacer backtrack
                 stack.pop()
 
-        print(f"[OK] Maze generated successfully")
 
     def generate_step_by_step(self):
         """

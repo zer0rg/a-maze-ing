@@ -98,7 +98,8 @@ class Main:
             if self.renderer.generation_complete:
                 OutputFileHandler().save_file("maze.txt",
                                                         self.generator.maze,
-                                                        self.config)
+                                                        self.config,
+                                                        self.solver)
                 self.generated = True
                 state = f"Maze generated successfully!"
             else:

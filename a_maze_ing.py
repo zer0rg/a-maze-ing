@@ -120,12 +120,6 @@ class Main:
                 self.renderer.initialize_rendered_solving(self.solver.solve_step_by_step())
                 self.renderer.run()
 
-                # Guardar el path una vez completado
-                if self.solver.reconstructed_path:
-                    with open("solved_path.txt", "w") as f:
-                        for cell in self.solver.reconstructed_path:
-                            f.write(f"{cell.coord}\n")
-
             elif solving_option is ExecOptions.SHOW_SOLUTION_NO_RENDER:
                 # Resolver sin animación y mostrar resultado final
                 print("Solving maze without animation...")
@@ -135,11 +129,6 @@ class Main:
                 if solution:
                     self.renderer.draw_solution(solution)
                     self.renderer.sync()
-
-                    # Guardar solución
-                    with open("solved_path.txt", "w") as f:
-                        for cell in solution:
-                            f.write(f"{cell.coord}\n")
                 else:
                     print("No solution found!")
 

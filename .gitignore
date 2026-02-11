@@ -12,5 +12,4 @@ env/
 .idea
 .vscode
 
-#MLX FILES
-mlx_CLXV
+maze.txt

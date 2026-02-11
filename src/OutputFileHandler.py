@@ -1,12 +1,12 @@
-from self_typing.maze import MazeBoard
-from src.MazeConfig import MazeConfig
-from src.solver import BidirectionalBFSSolver
+from .Solver import Solver
+from custom_typing.maze import MazeBoard
+from src.Config import Config
 
 
 class OutputFileHandler:
 
     @staticmethod
-    def save_file(file_name: str, maze: MazeBoard, config: MazeConfig, solver: BidirectionalBFSSolver) -> str:
+    def save_file(file_name: str, maze: MazeBoard, config: Config, solver: Solver) -> str:
         with open(file_name, "w") as file:
             for y in range(1, config.height + 1):
                 for x in range(1, config.width + 1):
@@ -25,11 +25,11 @@ class OutputFileHandler:
                 if next_cell is None:
                     break
                 if actual.coord[0] < next_cell.coord[0]:
-                    file.write("E\n")
+                    file.write("E")
                 elif actual.coord[0] > next_cell.coord[0]:
-                    file.write("W\n")
+                    file.write("W")
                 elif actual.coord[1] < next_cell.coord[1]:
-                    file.write("S\n")
+                    file.write("S")
                 elif actual.coord[1] > next_cell.coord[1]:
-                    file.write("N\n")
+                    file.write("N")
         return file_name

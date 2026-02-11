@@ -1,9 +1,8 @@
 #!/usr/bin/python3
-from self_typing.maze import Coordinate
-from src.InteractiveMenu import ExecOptions
-from src import MazeConfig, MazeGenerator, InteractiveMenu, MazeRenderer
+from src.Menu import ExecOptions
+from src import Config, Generator, Menu, Renderer
 from src import OutputFileHandler
-from src.solver.BidirectionalBFSSolver import BidirectionalBFSSolver
+from src import Solver
 import sys
 import os
 
@@ -12,12 +11,12 @@ class Main:
 
     def __init__(self, config_file):
         # Parseo de archivo configuracion en objeto config
-        self.config: MazeConfig = MazeConfig(config_file)
-        self.generator: MazeGenerator = MazeGenerator(self.config)
-        self.renderer: MazeRenderer = MazeRenderer(self.config,
-                                                   self.generator)
-        self.menu: InteractiveMenu = InteractiveMenu(self.config)
-        self.solver: BidirectionalBFSSolver = BidirectionalBFSSolver(
+        self.config: Config = Config(config_file)
+        self.generator: Generator = Generator(self.config)
+        self.renderer: Renderer = Renderer(self.config,
+                                           self.generator)
+        self.menu: Menu = Menu(self.config)
+        self.solver: Solver = Solver(
             self.generator.maze,
             self.config.entry,
             self.config.exit)
@@ -153,7 +152,7 @@ class Main:
 
 if __name__ == "__main__":
     try:
-        Main(MazeConfig.get_config_file())
+        Main(Config.get_config_file())
     except Exception as e:
         print(f"{e}")
         sys.exit(1)

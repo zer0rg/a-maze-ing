@@ -1,14 +1,14 @@
 from collections import deque
 from typing import Dict, Set
-from self_typing.maze import Coordinate, MazeBoard
+from custom_typing.maze import Coordinate, MazeBoard
 from src.Cell import Cell
-from src.solver.MazeSolver import MazeSolver
 
-
-class BidirectionalBFSSolver(MazeSolver):
+class Solver:
 
     def __init__(self, board: MazeBoard, entry: Coordinate, exit: Coordinate):
-        super().__init__(board, entry, exit)
+        self.board = board
+        self.entry = entry
+        self.exit = exit
         self.reconstructed_path = None
 
     def solve(self):

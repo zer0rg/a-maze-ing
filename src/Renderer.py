@@ -1,18 +1,18 @@
 from typing import Generator
 
-from self_typing import MazeBoard
-from self_typing.maze import NORTH, SOUTH, EAST, WEST
-from src.MazeConfig import MazeConfig
+from custom_typing import MazeBoard
+from custom_typing.maze import NORTH, SOUTH, EAST, WEST
+from src.Config import Config
 from src.Cell import Cell
-from src.MazeGenerator import MazeGenerator
+from src.Generator import Generator
 from mlx import Mlx
 import ctypes
 import time
 
 
-class MazeRenderer:
+class Renderer:
 
-    def __init__(self, config: MazeConfig, generator: MazeGenerator):
+    def __init__(self, config: Config, generator: Generator):
         self.mlx: Mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
         self.screen_size = self.mlx.mlx_get_screen_size(self.mlx_ptr)
@@ -27,7 +27,7 @@ class MazeRenderer:
 
         self.running = True
 
-        self.generator: MazeGenerator = generator
+        self.generator: Generator = generator
         self.board: MazeBoard | None = generator.maze
 
         self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, self.width, self.height)

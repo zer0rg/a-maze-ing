@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 
-from src.MazeConfig import MazeConfig
+from src.Config import Config
 class ExecOptions(Enum):
     GEN_MAZE_WITH_RENDER = 1
     GEN_MAZE_NO_RENDER = 2
@@ -38,11 +38,11 @@ class MenuPrintable(Enum):
 ╚═╝╚═╝  ╚═══╝ ╚═════╝
 """
 
-class InteractiveMenu:
+class Menu:
 
     def __init__(
                 self,
-                config: MazeConfig
+                config: Config
                  ):
         self.config = config
         self.status: str = ""
@@ -63,13 +63,13 @@ class InteractiveMenu:
         print()
         try:
             selection = int(input("Select an option => "))
-            if selection is 1:
+            if selection == 1:
                 return self.ask_render_option(RenderOptions.GENERATION)
-            elif selection is 2 and generated:
+            elif selection == 2 and generated:
                 return self.ask_render_option(RenderOptions.SOLUTION)
-            elif selection is 3 and generated:
+            elif selection == 3 and generated:
                 return ExecOptions.CHANGE_COLOR
-            elif selection is 4 and generated:
+            elif selection == 4 and generated:
                 return ExecOptions.EXIT
             else:
                 raise ValueError("Invalid option selected")

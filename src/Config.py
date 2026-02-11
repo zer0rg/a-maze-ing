@@ -1,8 +1,8 @@
-from self_typing.maze import Coordinate
+from custom_typing.maze import Coordinate
 import sys
 
 
-class MazeConfig:
+class Config:
 
     def __init__(self, config_file):
         print("Reading config file...")

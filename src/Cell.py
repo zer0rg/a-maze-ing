@@ -1,6 +1,6 @@
 from typing import Optional
-from self_typing import NORTH, EAST, SOUTH, WEST, MOVEMENTS
-from self_typing import MazeWalls, Coordinate, MazeBoard
+from custom_typing import NORTH, EAST, SOUTH, WEST, MOVEMENTS
+from custom_typing import MazeWalls, Coordinate, MazeBoard
 
 
 class Cell:

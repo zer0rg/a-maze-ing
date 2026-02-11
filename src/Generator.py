@@ -1,14 +1,14 @@
 from collections import deque
 import time
-from self_typing.maze import MOVEMENTS, MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
-from src.MazeConfig import MazeConfig
+from custom_typing.maze import MOVEMENTS, MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
+from src.Config import Config
 from src.Cell import Cell
 import random
 
 
-class MazeGenerator:
+class Generator:
 
-    def __init__(self, config: MazeConfig):
+    def __init__(self, config: Config):
         self.width: int = config.width
         self.height: int = config.height
         self.perfect: bool = config.perfect

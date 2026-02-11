@@ -1,5 +1,3 @@
-from typing import Generator
-
 from custom_typing import MazeBoard
 from custom_typing.maze import NORTH, SOUTH, EAST, WEST
 from src.Config import Config
@@ -17,7 +15,7 @@ class Renderer:
         self.mlx_ptr = self.mlx.mlx_init()
         self.screen_size = self.mlx.mlx_get_screen_size(self.mlx_ptr)
         self.config = config
-        self.width , self.height = self.get_window_size()
+        self.width, self.height = self.get_window_size()
 
         self.win_ptr = self.mlx.mlx_new_window(self.mlx_ptr, self.width,
                                                self.height, "A_maze_ing")
@@ -30,10 +28,12 @@ class Renderer:
         self.generator: Generator = generator
         self.board: MazeBoard | None = generator.maze
 
-        self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, self.width, self.height)
+        self.img_ptr = self.mlx.mlx_new_image(self.mlx_ptr, self.width,
+                                              self.height)
         addr_info = self.mlx.mlx_get_data_addr(self.img_ptr)
         self.img_buffer = (
-            ctypes.c_ubyte * (self.width * self.height * 4)).from_buffer(addr_info[0])
+            ctypes.c_ubyte * (self.width * self.height * 4)).from_buffer(
+                addr_info[0])
 
         # Estados de renderizado
         self.wall_thickness = 2
@@ -66,12 +66,12 @@ class Renderer:
 
     def initialize_rendered_generation(self):
         """Inicia la generación del laberinto."""
-        self.generation_complete =  False
+        self.generation_complete = False
         self.last_generation_time = time.time()
         self.generation_generator = self.generator.generate_step_by_step()
         self.draw_maze()
 
-    def initialize_rendered_solving(self, solver: Generator):
+    def initialize_rendered_solving(self, solver):
         """Inicia la solución del laberinto."""
         self.solving_complete = False
         self.last_solving_time = time.time()
@@ -105,11 +105,19 @@ class Renderer:
             py = (y - 1) * cell_height
 
             if cell.is_start:
-                self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                self._fill_rect(px + 1, py + 1,
+                                cell_width - 2,
+                                cell_height - 2,
+                                self.start_color)
             elif cell.is_exit:
-                self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.end_color)
+                self._fill_rect(px + 1, py + 1,
+                                cell_width - 2,
+                                cell_height - 2,
+                                self.end_color)
             else:
-                self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2,
+                self._fill_rect(px + 1, py + 1,
+                                cell_width - 2,
+                                cell_height - 2,
                                 self.solution_path_color)
 
         # Mostrar la imagen en la ventana
@@ -296,7 +304,8 @@ little')
             color = self.visiting_goal_color
         elif action == 'solution_found':
             color = self.solution_path_color
-        elif action in ['backtracking_start', 'backtracking_goal', 'clear_visited']:
+        elif action in ['backtracking_start', 'backtracking_goal',
+                        'clear_visited']:
             color = self.bg_color  # Volver al fondo negro
 
         for cell in cells:
@@ -304,48 +313,75 @@ little')
             px = (x - 1) * cell_width
             py = (y - 1) * cell_height
 
-            # Si es solution_found, no limpiar toda la celda, solo pintar el interior
-            # para mantener los espacios sin paredes como estaban
+            # Si es solution_found, no limpiar toda la celda, solo pintar el
+            # interior para mantener los espacios sin paredes como estaban
             if action == 'solution_found':
                 # Solo pintar el interior (donde no hay paredes)
-                if not cell.is_start and not cell.is_exit and not cell.is_fixed:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, color)
+                if not cell.is_start and not cell.is_exit and (
+                        not cell.is_fixed):
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2,
+                                    cell_height - 2,
+                                    color)
                 # Mantener los colores especiales de start/exit/fixed
                 if cell.is_start:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2,
+                                    cell_height - 2,
+                                    self.start_color)
                 elif cell.is_exit:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.end_color)
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2,
+                                    cell_height - 2,
+                                    self.end_color)
                 elif cell.is_fixed:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2,
+                                    cell_height - 2,
+                                    self.start_color)
             else:
-                # Para todas las demás acciones, limpiar y redibujar completamente
-                # Limpiar toda el área de la celda
+                # Para todas las demás acciones, limpiar y redibujar
                 self._fill_rect(px, py, cell_width, cell_height, self.bg_color)
 
                 # Pintar el interior de la celda con el color apropiado
                 if color != self.bg_color:
                     # Dibujar el fondo coloreado para celdas no especiales
-                    if not cell.is_start and not cell.is_exit and not cell.is_fixed:
-                        self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, color)
+                    if not cell.is_start and not cell.is_exit and (
+                            not cell.is_fixed):
+                        self._fill_rect(px + 1, py + 1,
+                                        cell_width - 2, cell_height - 2,
+                                        color)
 
                 # Mantener los colores especiales de start/exit/fixed siempre
                 if cell.is_start:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2, cell_height - 2,
+                                    self.start_color)
                 elif cell.is_exit:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.end_color)
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2, cell_height - 2,
+                                    self.end_color)
                 elif cell.is_fixed:
-                    self._fill_rect(px + 1, py + 1, cell_width - 2, cell_height - 2, self.start_color)
+                    self._fill_rect(px + 1, py + 1,
+                                    cell_width - 2, cell_height - 2,
+                                    self.start_color)
 
                 # Dibujar las paredes siempre
                 if cell.has_wall(NORTH):
-                    self._draw_line(px, py, px + cell_width, py, self.wall_color, self.wall_thickness)
+                    self._draw_line(px, py,
+                                    px + cell_width, py, self.wall_color,
+                                    self.wall_thickness)
                 if cell.has_wall(SOUTH):
-                    self._draw_line(px, py + cell_height, px + cell_width, py + cell_height, self.wall_color,
+                    self._draw_line(px, py + cell_height,
+                                    px + cell_width, py + cell_height,
+                                    self.wall_color,
                                     self.wall_thickness)
                 if cell.has_wall(WEST):
-                    self._draw_line(px, py, px, py + cell_height, self.wall_color, self.wall_thickness)
+                    self._draw_line(px, py, px, py + cell_height,
+                                    self.wall_color, self.wall_thickness)
                 if cell.has_wall(EAST):
-                    self._draw_line(px + cell_width, py, px + cell_width, py + cell_height, self.wall_color,
+                    self._draw_line(px + cell_width, py, px + cell_width,
+                                    py + cell_height, self.wall_color,
                                     self.wall_thickness)
 
         # Mostrar la imagen en la ventana
@@ -427,7 +463,7 @@ little')
                 # Aplicar grosor perpendicular a la direccion de la línea
                 if dx > dy:
                     py = py + t - thickness // 2
-                else: 
+                else:
                     px = px + t - thickness // 2
 
                 # Verificar límites y dibujar
@@ -466,7 +502,7 @@ little')
         """Renderizado sincrono del buffer actual"""
         self.mlx.mlx_do_sync(self.mlx_ptr)
 
-    def run(self, static = False):
+    def run(self, static=False):
         """Inicio de loop de la MLX"""
         self.mlx.mlx_loop(self.mlx_ptr)
         if static:

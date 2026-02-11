@@ -6,7 +6,8 @@ from src.Config import Config
 class OutputFileHandler:
 
     @staticmethod
-    def save_file(file_name: str, maze: MazeBoard, config: Config, solver: Solver) -> str:
+    def save_file(file_name: str, maze: MazeBoard,
+                  config: Config, solver: Solver) -> str:
         with open(file_name, "w") as file:
             for y in range(1, config.height + 1):
                 for x in range(1, config.width + 1):

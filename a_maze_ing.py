@@ -96,11 +96,11 @@ class Main:
                 self.renderer.generation_complete = True
             if self.renderer.generation_complete:
                 OutputFileHandler().save_file("maze.txt",
-                                                        self.generator.maze,
-                                                        self.config,
-                                                        self.solver)
+                                              self.generator.maze,
+                                              self.config,
+                                              self.solver)
                 self.generated = True
-                state = f"Maze generated successfully!"
+                state = "Maze generated successfully!"
             else:
                 self.generated = False
                 state = "Maze generation was not completed!"
@@ -117,7 +117,8 @@ class Main:
             if solving_option is ExecOptions.SHOW_SOLUTION_RENDER:
                 # Resolver con animación paso a paso
                 print("Solving maze with animation...")
-                self.renderer.initialize_rendered_solving(self.solver.solve_step_by_step())
+                self.renderer.initialize_rendered_solving(
+                    self.solver.solve_step_by_step())
                 self.renderer.run()
 
             elif solving_option is ExecOptions.SHOW_SOLUTION_NO_RENDER:
@@ -138,6 +139,7 @@ class Main:
             print(f"Fatal error occurred during solving: {e}")
             if hasattr(self, 'renderer'):
                 self.renderer.destroy()
+
 
 if __name__ == "__main__":
     try:

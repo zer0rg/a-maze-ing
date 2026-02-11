@@ -1,6 +1,9 @@
-from typing import Optional
+from typing import Optional, TypeAlias
 from custom_typing import NORTH, EAST, SOUTH, WEST, MOVEMENTS
 from custom_typing import MazeWalls, Coordinate, MazeBoard
+
+# TypeAlias para clarificar el propósito de las estructuras de datos
+NeighborMap: TypeAlias = dict[int, 'Cell']
 
 
 class Cell:
@@ -12,12 +15,11 @@ class Cell:
         self.is_fixed: bool = False
         self.is_start: bool = False
         self.is_exit: bool = False
-        self._neighbors: Optional[dict[int, 'Cell']] = None
+        self._neighbors: Optional[NeighborMap] = None
         self._maze_ref: Optional['MazeBoard'] = None
 
-
     @property
-    def neighbors(self) -> dict[int, 'Cell']:
+    def neighbors(self) -> NeighborMap:
         if self._neighbors is None:
             return {}
         return self._neighbors
@@ -36,7 +38,6 @@ class Cell:
         else:
             raise ValueError("Cells are not adjacent")
 
-
     def set_maze_reference(self, maze: 'MazeBoard') -> None:
         self._maze_ref = maze
         self._calculate_neighbors()
@@ -53,10 +54,10 @@ class Cell:
         """Remove a wall in a direction"""
         self.walls = self.walls & ~direction
 
-    def get_accessible_neighbors(self) -> dict[int, 'Cell']:
+    def get_accessible_neighbors(self) -> NeighborMap:
         """Returns a dict with the accesible neighbors of a Cell"""
         x_1, y_1 = self.coord
-        neighbors: dict[int, 'Cell'] = {}
+        neighbors: NeighborMap = {}
         for direction, move in MOVEMENTS.items():
             if not self.has_wall(direction) and self._maze_ref:
                 x_2, y_2 = move
@@ -77,7 +78,6 @@ class Cell:
             if neighbor_coord in self._maze_ref:
                 self._neighbors[direction] = self._maze_ref[neighbor_coord]
 
-
     def __eq__(self, value):
         if not isinstance(value, Cell):
             return False
@@ -87,4 +87,5 @@ class Cell:
         return hash(self.coord)
 
     def __str__(self):
-        return f"Cell({self.coord}, walls={self.walls}, visited={self.visited})"
+        return f"Cell({self.coord}, walls={self.walls}, \
+visited={self.visited})"

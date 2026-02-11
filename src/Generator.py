@@ -1,9 +1,13 @@
 from collections import deque
-import time
-from custom_typing.maze import MOVEMENTS, MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
+from typing import TypeAlias
+from custom_typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from src.Config import Config
 from src.Cell import Cell
 import random
+
+# TypeAlias para clarificar el propósito de las estructuras de datos
+UnvisitedNeighbors: TypeAlias = list[tuple[int, Cell]]
+WallCandidate: TypeAlias = tuple[Cell, Cell, int]
 
 
 class Generator:
@@ -43,7 +47,7 @@ class Generator:
             current_cell = stack[-1]
 
             # Obtener vecinos no visitados directamente desde la celda
-            unvisited_neighbors: list[tuple[int, Cell]] = []
+            unvisited_neighbors: UnvisitedNeighbors = []
             for direction, neighbor in current_cell.neighbors.items():
                 if not neighbor.visited and not neighbor.is_fixed:
                     unvisited_neighbors.append((direction, neighbor))
@@ -63,7 +67,6 @@ class Generator:
             else:
                 # No hay vecinos no visitados, hacer backtrack
                 stack.pop()
-
 
     def generate_step_by_step(self):
         """
@@ -92,14 +95,13 @@ class Generator:
             current_cell = stack[-1]
 
             # Obtener vecinos no visitados directamente desde la celda
-            unvisited_neighbors: list[tuple[int, Cell]] = []
+            unvisited_neighbors: UnvisitedNeighbors = []
             for direction, neighbor in current_cell.neighbors.items():
                 if not neighbor.visited and not neighbor.is_fixed:
                     unvisited_neighbors.append((direction, neighbor))
 
             if unvisited_neighbors:
                 direction, next_cell = random.choice(unvisited_neighbors)
-
 
                 # Romper las paredes entre current_cell y next_cell
                 current_cell.remove_wall(direction)
@@ -135,7 +137,6 @@ class Generator:
                     'action': 'adding_extra_path',
                     'modified_cells': [cell],
                 }
-        print(f"[OK] Maze generated successfully")
 
     def bfs_distance(self, start: Cell, end: Cell, max_dist: int = 10) -> int:
         """Distancia BFS entre start y end respetando paredes"""
@@ -151,16 +152,18 @@ class Generator:
             for direction, neighbor in current.neighbors.items():
                 if not current.has_wall(direction):
                     queue.append((neighbor, dist + 1))
-        return float('inf')  # No hay camino
+        return int('inf')  # No hay camino
 
-    def _add_extra_paths(self, min_dist: int = 6, max_paths: int = 10) -> list[Cell]:
+    def _add_extra_paths(self, min_dist: int = 6,
+                         max_paths: int = 10) -> list[Cell]:
         """Agrega caminos extra evitando ciclos triviales"""
-        candidates = []
+        candidates: list[WallCandidate] = []
 
         # Paso 1: recolectar todas las paredes candidatas
         for cell in self.maze.values():
             for direction, neighbor in cell.neighbors.items():
-                if not cell.is_fixed and not neighbor.is_fixed and cell.has_wall(direction):
+                if not cell.is_fixed and not neighbor.is_fixed and (
+                        cell.has_wall(direction)):
                     candidates.append((cell, neighbor, direction))
 
         random.shuffle(candidates)

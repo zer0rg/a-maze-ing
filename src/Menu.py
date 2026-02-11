@@ -2,6 +2,8 @@ import os
 from enum import Enum
 
 from src.Config import Config
+
+
 class ExecOptions(Enum):
     GEN_MAZE_WITH_RENDER = 1
     GEN_MAZE_NO_RENDER = 2
@@ -10,12 +12,15 @@ class ExecOptions(Enum):
     CHANGE_COLOR = 5
     EXIT = 6
 
+
 class RenderOptions(Enum):
     GENERATION = (0, "generate")
     SOLUTION = (1, "show the solution path")
 
+
 class BackException(Exception):
     pass
+
 
 class MenuPrintable(Enum):
     MAIN_MENU = """1. New Maze
@@ -37,6 +42,7 @@ class MenuPrintable(Enum):
    ╚═╝  ╚═╝      ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝      \
 ╚═╝╚═╝  ╚═══╝ ╚═════╝
 """
+
 
 class Menu:
 
@@ -73,11 +79,10 @@ class Menu:
                 return ExecOptions.EXIT
             else:
                 raise ValueError("Invalid option selected")
-        except BackException as e:
+        except BackException:
             return self.init_menu("Going back to main menu...", generated)
         except ValueError as e:
             return self.init_menu(f"Error ex: ´{str(e)}", generated)
-
 
     def print_header(self):
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -89,7 +94,7 @@ class Menu:
         Entry: {self.config.entry} | \
         Exit: {self.config.exit} | \
         Perfect: {self.config.perfect}")
-        if self.status is not "":
+        if self.status != "":
             print(f"\nStatus\t=>\t{self.status}")
         print()
 

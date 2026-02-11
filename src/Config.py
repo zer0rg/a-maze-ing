@@ -45,9 +45,11 @@ class Config:
         if not hasattr(self, 'entry') or not isinstance(self.entry, tuple):
             raise Exception("Value ENTRY is needed and must be a valid \
                             coordinate pair!")
-        if self.entry[0] < 1 or self.entry[0] > self.width or self.entry[1] < 1 or self.entry[1] > self.height:
+        if self.entry[0] < 1 or self.entry[0] > self.width or self.entry[1] < (
+                1) or self.entry[1] > self.height:
             raise Exception("Value ENTRY must be within the maze dimensions!")
-        if self.exit[0] < 1 or self.exit[0] > self.width or self.exit[1] < 1 or self.exit[1] > self.height:
+        if self.exit[0] < 1 or self.exit[0] > self.width or self.exit[1] < (
+                1) or self.exit[1] > self.height:
             raise Exception("Value EXIT must be within the maze dimensions!")
         if not hasattr(self, 'exit') or not isinstance(self.exit, tuple):
             raise Exception("Value EXIT is needed and must be a valid \

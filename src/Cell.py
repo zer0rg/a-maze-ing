@@ -22,6 +22,21 @@ class Cell:
             return {}
         return self._neighbors
 
+    def get_relative_direction(self, other: 'Cell'):
+        if self.coord[0] == other.coord[0]:
+            if self.coord[1] < other.coord[1]:
+                return SOUTH
+            else:
+                return NORTH
+        elif self.coord[1] == other.coord[1]:
+            if self.coord[0] < other.coord[0]:
+                return EAST
+            else:
+                return WEST
+        else:
+            raise ValueError("Cells are not adjacent")
+
+
     def set_maze_reference(self, maze: 'MazeBoard') -> None:
         self._maze_ref = maze
         self._calculate_neighbors()

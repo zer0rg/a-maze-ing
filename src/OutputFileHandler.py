@@ -14,7 +14,7 @@ class OutputFileHandler:
                     file.write(f"{format(maze[(x, y)].walls, 'X')}")
                     if x == config.width:
                         file.write("\n")
-            file.write("\n\n")
+            file.write("\n")
             file.write(f"{config.entry[0]},{config.entry[1]}\n")
             file.write(f"{config.exit[0]},{config.exit[1]}\n")
             path = solver.solve()

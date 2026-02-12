@@ -28,7 +28,6 @@ clean:
 	rm -rf custom_typing/__pycache__
 	rm -rf .mypy_cache
 	rm -rf build
-	rm -rf dist
 	rm -rf a_maze_ing.egg-info
 	rm -rf .pytest_cache
 
@@ -39,4 +38,5 @@ lint:
 
 # Build distribution packages
 build:
+	$(PIP) install build
 	$(PYTHON) -m build

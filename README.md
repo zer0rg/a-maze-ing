@@ -197,18 +197,12 @@ for coord, cell in maze.items():
 
 | Member | Role | Responsibilities |
 |--------|------|------------------|
-| **amarcill** | Lead Developer | Architecture, generation/solving algorithms, program logic |
-| **rgerman-** | Visualization Developer | Rendering, graphical interface, MLX integration |
+| **amarcill** | Architecture, solving algorithms, program logic |
+| **rgerman-** | Visualization Developer | Rendering, generating, graphical interface, MLX integration |
 
 ### Planning
 
-#### Initial Plan
-1. **Week 1**: Architecture design and data structures
-2. **Week 2**: DFS generator implementation
-3. **Week 3**: Solver and rendering implementation
-4. **Week 4**: Testing, documentation, and polish
-
-#### Actual Evolution
+#### Evolution
 - MLX integration required more time than expected
 - Seed functionality was added for reproducible testing
 - Interactive menu was expanded for better UX
@@ -274,5 +268,5 @@ This project is part of the 42 educational curriculum and is intended for academ
 
 ## Contact
 
-- **amarcill** - [GitHub](https://github.com/amarcill)
-- **rgerman-** - [GitHub](https://github.com/rgerman-)
+- **amarcill** - [GitHub](https://github.com/adrimppp)
+- **rgerman-** - [GitHub](https://github.com/zer0rg)

@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+"""Main entry point for the A-Maze-Ing maze generator application."""
+
 from src.Menu import ExecOptions
 from src import Config, Generator, Menu, Renderer
 from src import OutputFileHandler
@@ -8,9 +10,11 @@ import os
 
 
 class Main:
+    """Main application class for maze generation and solving."""
 
-    def __init__(self, config_file):
-        # Parseo de archivo configuracion en objeto config
+    def __init__(self, config_file: str) -> None:
+        """Initialize the application with a configuration file."""
+        self.is_solved: bool = False
         self.config: Config = Config(config_file)
         self.generator: Generator = Generator(self.config)
         self.renderer: Renderer = Renderer(self.config,
@@ -21,16 +25,20 @@ class Main:
             self.config.entry,
             self.config.exit)
         self.generated: bool = False
-        self.main_menu("Welcome to A-Maze-Ing!", self.generated)
+        self.main_menu("Welcome to A-Maze-Ing!", self.generated,
+                       self.is_solved)
 
-    def exec_result(self, selection: ExecOptions):
+    def exec_result(self, selection: ExecOptions) -> None:
+        """Execute the selected menu option."""
         if selection and isinstance(selection, ExecOptions):
             try:
                 if selection is ExecOptions.GEN_MAZE_WITH_RENDER:
                     self.menu.print_header()
+                    self.is_solved = False
                     self.start_generation(ExecOptions.GEN_MAZE_WITH_RENDER)
                 elif selection is ExecOptions.GEN_MAZE_NO_RENDER:
                     self.menu.print_header()
+                    self.is_solved = False
                     self.start_generation(ExecOptions.GEN_MAZE_NO_RENDER)
                 elif selection is ExecOptions.SHOW_SOLUTION_RENDER:
                     if self.generated:
@@ -38,47 +46,59 @@ class Main:
                         self.start_solving(ExecOptions.SHOW_SOLUTION_RENDER)
                     else:
                         self.main_menu("Error: Maze must be generated first",
-                                       self.generated)
+                                       self.generated, self.is_solved)
                 elif selection is ExecOptions.SHOW_SOLUTION_NO_RENDER:
                     if self.generated:
                         self.menu.print_header()
                         self.start_solving(ExecOptions.SHOW_SOLUTION_NO_RENDER)
                     else:
                         self.main_menu("Error: Maze must be generated first",
-                                       self.generated)
+                                       self.generated, self.is_solved)
                 elif selection is ExecOptions.CHANGE_COLOR:
-                    self.change_background_color()
+                    self.change_wall_color()
                 elif selection is ExecOptions.EXIT:
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("Exiting program...")
                     if hasattr(self, 'renderer'):
                         self.renderer.destroy()
                     sys.exit(0)
+                elif selection is ExecOptions.HIDE_SOLVE_PATH:
+                    self.renderer.draw_maze()
+                    self.renderer.sync()
+                    self.is_solved = False
+                    self.main_menu("Solve path hidden", self.generated,
+                                   self.is_solved)
                 else:
                     self.main_menu("Error: Invalid option selected",
-                                   self.generated)
+                                   self.generated, self.is_solved)
             except ValueError:
                 self.main_menu("Error: Only integers are admitted",
-                               self.generated)
+                               self.generated, self.is_solved)
             except Exception as error:
                 self.main_menu(f"Unexpected error occurred: \
-{error.__str__()}\n Report it pls! <3", self.generated)
+{error.__str__()}\n Report it pls! <3", self.generated, self.is_solved)
 
-    def change_background_color(self) -> None:
+    def change_wall_color(self) -> None:
+        """Prompt user for color code and change the background color."""
         select = self.menu.ask_color_code()
         if select is None:
-            self.change_background_color()
-        self.renderer.set_background_color(select)  # type: ignore
-        self.renderer.set_visited_color(select)  # type: ignore
-        self.renderer.sync()
-        self.main_menu("Background color changed successfully!",
-                       self.generated)
+            self.change_wall_color()
 
-    def main_menu(self, status: str = "", generated: bool = False):
-        result: ExecOptions = self.menu.init_menu(status, generated)
+        self.renderer.set_wall_color(select)  # type: ignore
+        self.renderer.sync()
+        if self.is_solved:
+            self.start_solving(ExecOptions.SHOW_SOLUTION_NO_RENDER)
+        self.main_menu("Background color changed successfully!",
+                       self.generated, self.is_solved)
+
+    def main_menu(self, status: str = "", generated: bool = False,
+                  solved: bool = False) -> None:
+        """Display the main menu and handle user selection."""
+        result: ExecOptions = self.menu.init_menu(status, generated, solved)
         self.exec_result(result)
 
     def start_generation(self, generation_type: ExecOptions) -> None:
+        """Start the maze generation process."""
         state = ""
         try:
             self.generated = False
@@ -105,7 +125,7 @@ class Main:
                 self.generated = False
                 state = "Maze generation was not completed!"
             self.main_menu(state,
-                           self.generated)
+                           self.generated, self.is_solved)
         except Exception as e:
             self.generated = False
             print(f"Fatal error occurred: {e}")
@@ -113,6 +133,7 @@ class Main:
                 self.renderer.destroy()
 
     def start_solving(self, solving_option: ExecOptions) -> None:
+        """Start the maze solving process."""
         try:
             if solving_option is ExecOptions.SHOW_SOLUTION_RENDER:
                 # Resolver con animación paso a paso
@@ -132,8 +153,9 @@ class Main:
                     self.renderer.sync()
                 else:
                     print("No solution found!")
-
-            self.main_menu("Solving completed!", self.generated)
+            self.is_solved = True
+            self.main_menu("Solving completed!", self.generated,
+                           self.is_solved)
 
         except Exception as e:
             print(f"Fatal error occurred during solving: {e}")
@@ -141,9 +163,14 @@ class Main:
                 self.renderer.destroy()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point function for the package."""
     try:
         Main(Config.get_config_file())
     except Exception as e:
         print(f"{e}")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

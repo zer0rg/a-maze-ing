@@ -1,11 +1,12 @@
 from collections import deque
-from typing import Dict, List, Optional, Set, TypeAlias
+from typing import Dict, Generator, List, Optional, Set, TypeAlias, Any
 from custom_typing.maze import Coordinate, MazeBoard
 from src.Cell import Cell
 
 # TypeAlias para clarificar el propósito de las estructuras de datos
 ParentMap: TypeAlias = Dict[Cell, Optional[Cell]]
 VisitedSet: TypeAlias = Set[Cell]
+SolveStep: TypeAlias = Dict[str, Any]
 
 
 class Solver:
@@ -68,12 +69,8 @@ class Solver:
         print("[ERROR] No solution found")
         return None
 
-    def solve_step_by_step(self):
-        """
-        Genera la solución paso a paso usando BFS bidireccional.
-        Emite eventos para renderizar la exploración en tiempo real.
-        Similar al generate_step_by_step del MazeGenerator.
-        """
+    def solve_step_by_step(self) -> Generator[SolveStep, None, None]:
+        """Generate the solution step by step using bidirectional BFS."""
         print("\nSolving...")
         print("Press Q in the maze window to abort solving")
 

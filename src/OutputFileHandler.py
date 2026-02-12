@@ -18,7 +18,6 @@ class OutputFileHandler:
             file.write(f"{config.entry[0]},{config.entry[1]}\n")
             file.write(f"{config.exit[0]},{config.exit[1]}\n")
             path = solver.solve()
-            file.write(f"{len(path) if path else 0}\n")
             actual = None
             while path:
                 actual = path.pop(0)

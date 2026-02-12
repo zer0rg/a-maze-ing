@@ -1,10 +1,14 @@
+"""Configuration module for maze settings."""
+
 from custom_typing.maze import Coordinate
 import sys
 
 
 class Config:
+    """Configuration class for maze parameters."""
 
-    def __init__(self, config_file):
+    def __init__(self, config_file: str) -> None:
+        """Initialize configuration from a file."""
         print("Reading config file...")
 
         self.width: int = 0
@@ -13,6 +17,7 @@ class Config:
         self.exit: Coordinate = (0, 0)
         self.perfect: bool = False
         self.output_file: str = ""
+        self.seed: int | None = None
 
         try:
             self.parse_file(config_file)
@@ -23,7 +28,8 @@ class Config:
             print(f"Config File Error: {e}")
             sys.exit(1)
 
-    def parse_file(self, config_file) -> None:
+    def parse_file(self, config_file: str) -> None:
+        """Parse the configuration file and extract values."""
         try:
             with open(config_file, "r") as file:
                 for line in file:
@@ -38,8 +44,13 @@ class Config:
             raise Exception(f"Error occurred reading configuration file: {e}")
 
     def check_config(self) -> None:
+        """Validate the configuration values."""
         if not hasattr(self, 'width') or not self.width:
             raise Exception("Value WIDTH is needed!")
+        if self.width > 100 or self.height > 100:
+            raise Exception("Maximum width and height is 100")
+        if self.width < 10 or self.height < 10:
+            raise Exception("Minimum width and height is 10")
         if not hasattr(self, 'height') or not self.height:
             raise Exception("Value HEIGHT is needed!")
         if not hasattr(self, 'entry') or not isinstance(self.entry, tuple):
@@ -60,21 +71,29 @@ class Config:
             raise Exception("Value OUTPUT_FILE is needed!")
 
     def line_processor(self, key: str, value: str) -> None:
+        """Process a single configuration line."""
         try:
             if key == "WIDTH":
-                self.width: int = int(value)
+                self.width = int(value)
             elif key == "HEIGHT":
-                self.height: int = int(value)
+                self.height = int(value)
             elif key == "ENTRY":
                 x, y = value.split(",")
-                self.entry: Coordinate = (int(x), int(y))
+                self.entry = (int(x), int(y))
             elif key == "EXIT":
                 x, y = value.split(",")
-                self.exit: Coordinate = (int(x), int(y))
+                self.exit = (int(x), int(y))
             elif key == "PERFECT":
-                self.perfect: bool = value == "True"
+                if value == "True":
+                    self.perfect = True
+                elif value == "False":
+                    self.perfect = False
+                else:
+                    raise ValueError("Invalid boolean for PERFECT")
             elif key == "OUTPUT_FILE":
-                self.output_file: str = value
+                self.output_file = value
+            elif key == "SEED":
+                self.seed = int(value)
             else:
                 raise ValueError(f"Unknown configuration key: {key}")
         except Exception as e:

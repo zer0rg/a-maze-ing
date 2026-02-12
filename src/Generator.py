@@ -1,52 +1,61 @@
+"""Maze generator module using DFS algorithm."""
+
 from collections import deque
-from typing import TypeAlias
+from typing import TypeAlias, Generator as GenType, Any
 from custom_typing.maze import MazeBoard, Coordinate, NORTH, EAST, SOUTH, WEST
 from src.Config import Config
 from src.Cell import Cell
 import random
 
-# TypeAlias para clarificar el propósito de las estructuras de datos
+# TypeAlias for unvisited neighbors and wall candidates
 UnvisitedNeighbors: TypeAlias = list[tuple[int, Cell]]
 WallCandidate: TypeAlias = tuple[Cell, Cell, int]
+GeneratorStep: TypeAlias = dict[str, Any]
 
 
 class Generator:
+    """Maze generator using iterative DFS algorithm."""
 
     def __init__(self, config: Config):
+        """Initialize the generator with configuration settings."""
         self.width: int = config.width
         self.height: int = config.height
         self.perfect: bool = config.perfect
         self.entry: Coordinate = config.entry
         self.exit: Coordinate = config.exit
         self.output_file: str = config.output_file
+        self.seed: int | None = config.seed
         self.maze: MazeBoard = {}
         self.initialize_board()
 
+    def _init_random(self) -> None:
+        """Initialize random generator with seed if provided."""
+        if self.seed is not None:
+            random.seed(self.seed)
+
     def generate(self) -> None:
-        """
-        Genera el laberinto completo usando algoritmo DFS iterativo.
-        Modifica directamente self.maze sin emitir eventos.
-        """
+        """Generate the complete maze using iterative DFS algorithm."""
         print("\nGenerating...")
-        # DFS Iterativo: elegir celda inicial aleatoria
+        self._init_random()
+        # Iterative DFS: choose random initial cell
         start_x: int = random.randint(1, self.width)
         start_y: int = random.randint(1, self.height)
         start_coord: Coordinate = (start_x, start_y)
 
-        # Stack para el DFS iterativo usando Cell directamente
+        # Stack for iterative DFS using Cell directly
         start_cell: Cell = self.maze[start_coord]
         stack: list[Cell] = [start_cell]
 
-        # Marcar la celda inicial como visitada
+        # Mark initial cell as visited
         start_cell.visited = True
 
-        # Diccionario de direcciones opuestas
+        # Dictionary of opposite directions
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
 
         while stack:
             current_cell = stack[-1]
 
-            # Obtener vecinos no visitados directamente desde la celda
+            # Get unvisited neighbors directly from cell
             unvisited_neighbors: UnvisitedNeighbors = []
             for direction, neighbor in current_cell.neighbors.items():
                 if not neighbor.visited and not neighbor.is_fixed:
@@ -55,46 +64,46 @@ class Generator:
             if unvisited_neighbors:
                 direction, next_cell = random.choice(unvisited_neighbors)
 
-                # Romper las paredes entre current_cell y next_cell
+                # Break walls between current_cell and next_cell
                 current_cell.remove_wall(direction)
                 next_cell.remove_wall(opposites[direction])
 
-                # Marcar next_cell como visitada
+                # Mark next_cell as visited
                 next_cell.visited = True
 
-                # Añadir next_cell al stack
+                # Add next_cell to stack
                 stack.append(next_cell)
             else:
-                # No hay vecinos no visitados, hacer backtrack
+                # No unvisited neighbors, backtrack
                 stack.pop()
+        if not self.perfect:
+            print("\nAdding extra paths...")
+            self._add_extra_paths()
 
-    def generate_step_by_step(self):
-        """
-        Genera el laberinto usando algoritmo DFS
-        Devuelve un stream en cada pared que el algoritmo rompe
-        con las celdas modificadas
-        """
+    def generate_step_by_step(self) -> GenType[GeneratorStep, None, None]:
+        """Generate the maze using DFS yielding each step for animation."""
         print("\nGenerating...")
         print("Press Q in the maze window to abort generation")
-        # DFS Iterativo: elegir celda inicial aleatoria
+        self._init_random()
+        # Iterative DFS: choose random initial cell
         start_x: int = random.randint(1, self.width)
         start_y: int = random.randint(1, self.height)
         start_coord: Coordinate = (start_x, start_y)
 
-        # Stack para el DFS iterativo usando Cell directamente
+        # Stack for iterative DFS using Cell directly
         start_cell: Cell = self.maze[start_coord]
         stack: list[Cell] = [start_cell]
 
-        # Marcar la celda inicial como visitada
+        # Mark initial cell as visited
         start_cell.visited = True
 
-        # Diccionario de direcciones opuestas
+        # Dictionary of opposite directions
         opposites = {NORTH: SOUTH, SOUTH: NORTH, EAST: WEST, WEST: EAST}
 
         while stack:
             current_cell = stack[-1]
 
-            # Obtener vecinos no visitados directamente desde la celda
+            # Get unvisited neighbors directly from cell
             unvisited_neighbors: UnvisitedNeighbors = []
             for direction, neighbor in current_cell.neighbors.items():
                 if not neighbor.visited and not neighbor.is_fixed:
@@ -103,14 +112,14 @@ class Generator:
             if unvisited_neighbors:
                 direction, next_cell = random.choice(unvisited_neighbors)
 
-                # Romper las paredes entre current_cell y next_cell
+                # Break walls between current_cell and next_cell
                 current_cell.remove_wall(direction)
                 next_cell.remove_wall(opposites[direction])
 
-                # Marcar next_cell como visitada
+                # Mark next_cell as visited
                 next_cell.visited = True
 
-                # Añadir next_cell al stack
+                # Add next_cell to stack
                 stack.append(next_cell)
 
                 yield {
@@ -119,7 +128,7 @@ class Generator:
                     'modified_cells': [current_cell, next_cell],
                 }
             else:
-                # No hay vecinos no visitados, hacer backtrack
+                # No unvisited neighbors, backtrack
                 stack.pop()
                 if stack:
 
@@ -139,7 +148,7 @@ class Generator:
                 }
 
     def bfs_distance(self, start: Cell, end: Cell, max_dist: int = 10) -> int:
-        """Distancia BFS entre start y end respetando paredes"""
+        """Calculate BFS distance between two cells respecting walls."""
         queue = deque([(start, 0)])
         visited = set()
         while queue:
@@ -152,14 +161,14 @@ class Generator:
             for direction, neighbor in current.neighbors.items():
                 if not current.has_wall(direction):
                     queue.append((neighbor, dist + 1))
-        return int('inf')  # No hay camino
+        return 999999  # No path found
 
     def _add_extra_paths(self, min_dist: int = 6,
                          max_paths: int = 10) -> list[Cell]:
-        """Agrega caminos extra evitando ciclos triviales"""
-        candidates: list[WallCandidate] = []
+        """Add extra paths avoiding trivial cycles."""
+        candidates = []
 
-        # Paso 1: recolectar todas las paredes candidatas
+        # Step 1: collect all candidate walls
         for cell in self.maze.values():
             for direction, neighbor in cell.neighbors.items():
                 if not cell.is_fixed and not neighbor.is_fixed and (
@@ -171,7 +180,7 @@ class Generator:
         extra_path_cells = []
         added = 0
 
-        # Paso 2: romper paredes si distancia es suficientemente larga
+        # Step 2: break walls if distance is long enough
         for cell, neighbor, direction in candidates:
             if added >= max_paths:
                 break
@@ -186,7 +195,7 @@ class Generator:
         return extra_path_cells
 
     def initialize_board(self) -> None:
-        """Inicializa el laberinto con todas las paredes cerradas"""
+        """Initialize the maze with all walls closed."""
         center_x: int = (self.width + 1) // 2
         center_y: int = (self.height + 1) // 2
         center_coord: Coordinate = (center_x, center_y)
